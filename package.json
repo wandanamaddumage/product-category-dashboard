@@ -14,10 +14,15 @@
     "preview:container": "cd container-app && npm run preview",
     "lint:chart": "cd chart-app && npm run lint",
     "lint:container": "cd container-app && npm run lint",
-    "lint:all": "npm run lint:chart && npm run lint:container"
+    "lint:all": "npm run lint:chart && npm run lint:container",
+    "prepare": "husky"
   },
   "workspaces": [
     "container-app",
     "chart-app"
-  ]
+  ],
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7"
+  }
 }

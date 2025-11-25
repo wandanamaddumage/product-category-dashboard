@@ -1,0 +1,31 @@
+# Dependencies
+node_modules
+.pnpm-store
+.pnpm
+
+# Build outputs
+dist
+build
+coverage
+
+# Lock files
+pnpm-lock.yaml
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Husky
+.husky/_
+
+# Environment
+.env
+.env.local
+
+# Cache
+.cache
+.turbo
+.vite
