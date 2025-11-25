@@ -1,7 +1,9 @@
-import { ChakraProvider, defaultSystem } from "@chakra-ui/react";
+import { ChakraProvider, extendTheme } from '@chakra-ui/react';
 
-export function Provider(props: React.PropsWithChildren) {
-  return (
-    <ChakraProvider value={defaultSystem}>{props.children}</ChakraProvider>
-  );
+const theme = extendTheme({
+  // Add your theme customizations here
+});
+
+export function UIProvider({ children }: { children: React.ReactNode }) {
+  return <ChakraProvider theme={theme}>{children}</ChakraProvider>;
 }

@@ -10,8 +10,13 @@
     "preview": "vite preview --port 5001"
   },
   "dependencies": {
-    "@chakra-ui/react": "^3.3.1",
-    "@emotion/react": "^11.13.5",
+    "@chakra-ui/react": "^2.8.0",
+    "@emotion/react": "^11.11.0",
+    "@emotion/styled": "11.11.0",
+    "@types/highcharts": "^7.0.0",
+    "framer-motion": "10.16.0",
+    "highcharts": "^12.4.0",
+    "highcharts-react-official": "^3.2.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "recharts": "^2.13.3"
