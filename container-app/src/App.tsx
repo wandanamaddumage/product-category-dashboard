@@ -12,20 +12,44 @@ import {
 import { lazy, Suspense } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  getCategorySalesData,
   getPieChartData,
+  getProductsByCategory,
   productsData,
+  type Product,
 } from '../../const/productData';
 import FilterSection from './components/FilterSection';
 import type { RootState } from './store';
 
-// Dynamically import chart components from chart-app
-const Dashboard = lazy(() => import('chartApp/Dashboard'));
-const BarChart = lazy(() => import('chartApp/BarChart'));
-const LineChart = lazy(() => import('chartApp/LineChart'));
-const PieChartComponent = lazy(
-  () => import('chartApp/PieChart')
-) as React.ComponentType<{ data: any }>;
+// Type definitions for chart components
+type BarChartProps = {
+  data: Product[];
+};
+
+type PieDataPoint = {
+  name: string;
+  value: number;
+  category: string;
+};
+
+type PieChartProps = {
+  data: PieDataPoint[];
+  onCategoryClick: (category: string) => void;
+  isDark: boolean;
+};
+
+const BarChart = lazy(
+  () =>
+    import('chartApp/BarChart') as Promise<{
+      default: React.ComponentType<BarChartProps>;
+    }>
+);
+
+const PieChart = lazy(
+  () =>
+    import('chartApp/PieChart') as Promise<{
+      default: React.ComponentType<PieChartProps>;
+    }>
+);
 
 const ChartLoader = () => (
   <Card>
@@ -46,38 +70,40 @@ function App() {
     (state: RootState) => state.filter
   );
 
+  // Get report state
+  const { hasRun } = useSelector((state: RootState) => state.report);
+
   // Prepare data based on filters
-  const pieChartData = getPieChartData(
+  const pieChartData: PieDataPoint[] = getPieChartData(
     selectedProducts.length > 0 ? selectedProducts : undefined
   );
-  const categorySalesData = getCategorySalesData();
 
-  // Filter products based on selection
-  const filteredProductsForCharts =
-    selectedProducts.length > 0
-      ? productsData.filter((p: { id: number }) =>
-          selectedProducts.includes(p.id)
-        )
-      : selectedCategory
-        ? productsData.filter(
-            (p: { category: string }) => p.category === selectedCategory
-          )
-        : productsData;
+  // Get filtered products based on selection
+  const getFilteredProducts = (): Product[] => {
+    if (selectedProducts.length > 0) {
+      return productsData.filter((p: Product) =>
+        selectedProducts.includes(p.id)
+      );
+    }
+    if (selectedCategory) {
+      return getProductsByCategory(selectedCategory);
+    }
+    return productsData;
+  };
+
+  const filteredProducts = getFilteredProducts();
 
   return (
     <Box minH="100vh" bg="gray.50">
       <Container maxW="container.xl" py={8}>
         <VStack gap={8} align="stretch">
           {/* Header */}
-          <Box textAlign="center" py={8}>
-            <Heading size="2xl" mb={4}>
-              Container Application
+          <Box textAlign="center" py={4}>
+            <Heading size="2xl" mb={4} color="blue.600">
+              Product Category Dashboard
             </Heading>
             <Text fontSize="lg" color="gray.600">
-              Host app consuming Chart Micro Frontend
-            </Text>
-            <Text fontSize="sm" color="gray.500" mt={2}>
-              Built with Vite + React + Module Federation + Chakra UI
+              View and analyze product category data
             </Text>
           </Box>
 
@@ -88,40 +114,36 @@ function App() {
             </Suspense>
           </Box>
 
-          {/* Individual Charts Section */}
-          <Box>
-            <Heading size="lg" mb={4}>
-              Charts Based on Filters
-            </Heading>
-            <VStack gap={6} align="stretch">
-              <Suspense fallback={<ChartLoader />}>
-                {/* <BarChart data={filteredProductsForCharts} /> */}
-              </Suspense>
-
-              <Suspense fallback={<ChartLoader />}>
-                {/* <LineChart data={filteredProductsForCharts} /> */}
-              </Suspense>
-
-              <Suspense fallback={<ChartLoader />}>
-                {/* <PieChartComponent data={pieChartData} /> */}
-              </Suspense>
-            </VStack>
-          </Box>
-
-          {/* Full Dashboard */}
-          {selectedCategory && (
+          {/* Charts Section */}
+          <VStack gap={8} align="stretch">
+            {/* Pie Chart - Always visible */}
             <Box>
-              <Heading size="lg" mb={4}>
-                Complete Dashboard - {selectedCategory}
+              <Heading size="md" mb={4} color="gray.700">
+                Product Categories
               </Heading>
               <Suspense fallback={<ChartLoader />}>
-                {/* <Dashboard
-                  category={selectedCategory}
-                  products={filteredProductsForCharts}
-                /> */}
+                <PieChart
+                  data={pieChartData}
+                  onCategoryClick={(category: string) => {
+                    console.log('Selected category:', category);
+                  }}
+                  isDark={false}
+                />
               </Suspense>
             </Box>
-          )}
+
+            {/* Column Chart - Only shown after Run Report is clicked */}
+            {hasRun && (
+              <Box>
+                <Heading size="md" mb={4} color="gray.700">
+                  Sales by Category
+                </Heading>
+                <Suspense fallback={<ChartLoader />}>
+                  <BarChart data={filteredProducts} />
+                </Suspense>
+              </Box>
+            )}
+          </VStack>
         </VStack>
       </Container>
     </Box>

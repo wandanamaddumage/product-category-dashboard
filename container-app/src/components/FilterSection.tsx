@@ -36,13 +36,13 @@ import {
 import { setRunReportLoading } from '../store/slices/reportSlice';
 
 // Import the data
-import { categories, productsData } from '../../../const/productData';
+import {
+  categories,
+  productsData,
+  type Product,
+} from '../../../const/productData';
 
-interface FilteredProduct {
-  id: number;
-  title: string;
-  category: string;
-}
+type FilteredProduct = Pick<Product, 'id' | 'title' | 'category'>;
 
 export default function FilterSection() {
   const dispatch = useDispatch();
@@ -51,8 +51,14 @@ export default function FilterSection() {
   );
   const { isLoading } = useSelector((state: RootState) => state.report);
 
-  // Use imported data instead of hardcoded
-  const allProducts: FilteredProduct[] = productsData;
+  // Get all products with only the needed properties
+  const allProducts: FilteredProduct[] = productsData.map(
+    ({ id, title, category }) => ({
+      id,
+      title,
+      category,
+    })
+  );
 
   const filteredProducts = useMemo(() => {
     return selectedCategory

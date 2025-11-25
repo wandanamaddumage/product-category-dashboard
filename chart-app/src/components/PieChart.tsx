@@ -17,7 +17,7 @@ interface PieChartProps {
   isDark: boolean;
 }
 
-export default function PieChartComponent({
+export default function PieChart({
   data,
   onCategoryClick,
   isDark,

@@ -6,48 +6,137 @@ import {
   Heading,
   Text,
 } from '@chakra-ui/react';
-import {
-  Bar,
-  CartesianGrid,
-  Legend,
-  BarChart as RechartsBar,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts';
+import Highcharts from 'highcharts';
+import HighchartsReact from 'highcharts-react-official';
+import { useMemo, useRef } from 'react';
 
-const data = [
-  { name: 'Jan', sales: 4000, revenue: 2400 },
-  { name: 'Feb', sales: 3000, revenue: 1398 },
-  { name: 'Mar', sales: 2000, revenue: 9800 },
-  { name: 'Apr', sales: 2780, revenue: 3908 },
-  { name: 'May', sales: 1890, revenue: 4800 },
-  { name: 'Jun', sales: 2390, revenue: 3800 },
-];
+interface Product {
+  id: number;
+  title: string;
+  category: string;
+  price: number;
+  sales: number;
+}
 
-export default function BarChart() {
+interface BarChartProps {
+  data: Product[];
+}
+
+export default function BarChart({ data }: BarChartProps) {
+  const chartRef = useRef<HighchartsReact.RefObject>(null);
+
+  // Process data to get sales by category
+  const categorySales = useMemo(() => {
+    return data.reduce<{ name: string; y: number }[]>((acc, product) => {
+      const existingCategory = acc.find(item => item.name === product.category);
+      if (existingCategory) {
+        existingCategory.y += product.sales;
+      } else {
+        acc.push({
+          name: product.category,
+          y: product.sales,
+        });
+      }
+      return acc;
+    }, []);
+  }, [data]);
+
+  // Sort categories by sales in descending order
+  const sortedData = [...categorySales].sort((a, b) => b.y - a.y);
+
+  const options: Highcharts.Options = {
+    chart: {
+      type: 'column',
+      backgroundColor: 'transparent',
+      height: '100%',
+    },
+    title: {
+      text: 'Sales by Category',
+      align: 'left',
+      style: {
+        fontSize: '16px',
+        fontWeight: '600',
+        color: '#2D3748',
+      },
+    },
+    xAxis: {
+      type: 'category',
+      title: {
+        text: 'Category',
+      },
+      labels: {
+        style: {
+          color: '#4A5568',
+        },
+      },
+    },
+    yAxis: {
+      title: {
+        text: 'Sales (units)',
+      },
+      labels: {
+        style: {
+          color: '#4A5568',
+        },
+      },
+    },
+    legend: {
+      enabled: false,
+    },
+    tooltip: {
+      headerFormat: '<b>{point.key}</b><br/>',
+      pointFormat: 'Sales: <b>{point.y} units</b>',
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderColor: '#E2E8F0',
+      borderRadius: 6,
+      borderWidth: 1,
+      shadow: true,
+      style: {
+        color: '#2D3748',
+      },
+    },
+    plotOptions: {
+      column: {
+        borderRadius: 4,
+        color: '#3182CE',
+        dataLabels: {
+          enabled: true,
+          format: '{point.y}',
+          style: {
+            color: '#2D3748',
+            textOutline: 'none',
+          },
+        },
+      },
+    },
+    series: [
+      {
+        name: 'Sales',
+        data: sortedData,
+        type: 'column',
+      },
+    ],
+    credits: {
+      enabled: false,
+    },
+  };
+
   return (
     <Card variant="elevated">
-      <CardHeader>
-        <Heading size="md">Sales & Revenue</Heading>
-        <Text color="gray.600" fontSize="sm">
-          Monthly performance metrics
+      <CardHeader pb={2}>
+        <Heading size="md">Sales by Category</Heading>
+        <Text color="gray.600" fontSize="sm" mt={1}>
+          Total sales per product category
         </Text>
       </CardHeader>
-      <CardBody>
-        <Box h="300px">
-          <ResponsiveContainer width="100%" height="100%">
-            <RechartsBar data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="sales" name="Sales" fill="#3182ce" />
-              <Bar dataKey="revenue" name="Revenue" fill="#38a169" />
-            </RechartsBar>
-          </ResponsiveContainer>
+      <CardBody pt={0}>
+        <Box h="400px">
+          <HighchartsReact
+            highcharts={Highcharts}
+            options={options}
+            ref={chartRef}
+            containerProps={{ style: { height: '100%', width: '100%' } }}
+          />
         </Box>
       </CardBody>
     </Card>
