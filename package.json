@@ -1,0 +1,29 @@
+{
+  "name": "micro-frontend-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Micro Frontend workspace with container-app and chart-app",
+  "scripts": {
+    "install:all": "cd container-app && npm install && cd ../chart-app && npm install",
+    "dev:chart": "cd chart-app && npm run dev",
+    "dev:container": "cd container-app && npm run dev",
+    "build:chart": "cd chart-app && npm run build",
+    "build:container": "cd container-app && npm run build",
+    "build:all": "npm run build:chart && npm run build:container",
+    "preview:chart": "cd chart-app && npm run preview",
+    "preview:container": "cd container-app && npm run preview",
+    "lint:chart": "cd chart-app && npm run lint",
+    "lint:container": "cd container-app && npm run lint",
+    "lint:all": "npm run lint:chart && npm run lint:container",
+    "prepare": "husky"
+  },
+  "workspaces": [
+    "container-app",
+    "chart-app"
+  ],
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.6.2"
+  }
+}

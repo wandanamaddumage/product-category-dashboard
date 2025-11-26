@@ -1,0 +1,4 @@
+packages:
+  - 'chart-app'
+  - 'container-app'
+  - '.'
