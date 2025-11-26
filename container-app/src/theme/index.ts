@@ -20,7 +20,7 @@ const theme = extendTheme({
     body: `'Inter', sans-serif`,
   },
   styles: {
-    global: (props: any) => ({
+    global: () => ({
       'html, body': {
         bg: 'white',
         color: 'gray.800',
@@ -41,7 +41,7 @@ const theme = extendTheme({
         borderRadius: 'md',
       },
       variants: {
-        solid: (props: any) => ({
+        solid: () => ({
           bg: 'brand.500',
           color: 'white',
           _hover: {

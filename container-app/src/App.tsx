@@ -23,6 +23,7 @@ import FilterSection from './components/FilterSection';
 import type { AppDispatch, RootState } from './store';
 import { setSelectedCategory } from './store/slices/filterSlice';
 import { resetReport } from './store/slices/reportSlice';
+import { DashboardHeader } from './components/DashboardHeader';
 
 // Normalize remote component
 const normalizeRemote = <T,>(mod: any) => {
@@ -118,29 +119,16 @@ function App() {
   );
 
   return (
-    <Box bg="gray.50" minH="100vh">
+    <Box bg="gray.50" minH="100vh" p={4}>
       <Container maxW="1300px" py={{ base: 4, md: 8 }}>
-        
-        {/* Header */}
-        <Box textAlign="center" mb={{ base: 5, md: 8 }}>
-          <Heading 
-            fontSize={{ base: '2xl', md: '4xl' }}
-            fontWeight="800"
-            color="purple.600"
-            mb={2}
-          >
-            Product Dashboard
-          </Heading>
-          <Text fontSize={{ base: 'sm', md: 'md' }} color="gray.600">
-            Analyze categories and products with interactive charts
-          </Text>
-        </Box>
 
-        {/* Layout */}
+        <DashboardHeader />
+
         <SimpleGrid
           columns={{ base: 1, lg: 12 }}
           spacing={{ base: 4, md: 6 }}
           alignItems="start"
+
         >
           {/* Filters — Left */}
           <Box gridColumn={{ base: 'span 1', lg: 'span 4' }} h="auto" style={{ height: 'auto' }}>
@@ -156,8 +144,8 @@ function App() {
                 <CardBody p={{ base: 4, md: 6 }}>
                   <Flex justify="space-between" mb={4}>
                     <Box>
-                      <Heading size="md" color="gray.800">Product Categories</Heading>
-                      <Text fontSize="sm" color="gray.500">Click a category to filter</Text>
+                      <Heading size="md" color="gray.800">Products Categories</Heading>
+                      <Text fontSize="sm" color="gray.500">Click a category to filter products</Text>
                     </Box>
                   </Flex>
 
@@ -179,9 +167,9 @@ function App() {
                   <CardBody p={{ base: 4, md: 6 }}>
                     <Flex justify="space-between" mb={3}>
                       <Box>
-                        <Heading size="md" color="gray.800">Product Analysis</Heading>
+                        <Heading size="md" color="gray.800">Products Analysis</Heading>
                         <Text fontSize="sm" color="gray.500">
-                          {filteredProducts.length} products shown
+                          {filteredProducts.length} products shown in {selectedCategory ? selectedCategory : 'all categories'}
                         </Text>
                       </Box>
                     </Flex>
