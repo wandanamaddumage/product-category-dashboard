@@ -86,7 +86,6 @@ function App() {
   );
   const { hasRun } = useSelector((state: RootState) => state.report);
 
-  // Get filtered products based on selection
   const getFilteredProducts = () => {
     if (selectedProducts.length > 0) {
       return productsData.filter(p => selectedProducts.includes(p.id));
