@@ -86,17 +86,33 @@ function App() {
   );
   const { hasRun } = useSelector((state: RootState) => state.report);
 
+  // Get filtered products based on selection
+  // If products are selected, return only those products
+  // If only category is selected, return all products in that category
+  // If nothing is selected, return all products
   const getFilteredProducts = () => {
+    console.log('Filtering products with:', { selectedCategory, selectedProducts });
+    
     if (selectedProducts.length > 0) {
-      return productsData.filter(p => selectedProducts.includes(p.id));
+      const filtered = productsData.filter(p => selectedProducts.includes(p.id));
+      console.log('Filtered by selected products:', filtered);
+      return filtered;
     }
+    
     if (selectedCategory) {
-      return getProductsByCategory(selectedCategory);
+      const byCategory = getProductsByCategory(selectedCategory);
+      console.log(`Filtered by category '${selectedCategory}':`, byCategory);
+      return byCategory;
     }
+    
+    console.log('No filters applied, returning all products');
     return productsData;
   };
 
   const filteredProducts = getFilteredProducts();
+  console.log('Final filtered products:', filteredProducts);
+
+  console.log('Filtered products:', filteredProducts);
   
   // Get pie chart data based on filters
   // If products are selected, show only those products
@@ -173,7 +189,7 @@ function App() {
 
             {/* Right Side - Charts */}
             <Box gridColumn={{ base: 'span 1', lg: 'span 9' }}>
-              <VStack spacing={{ base: 4, md: 6, lg: 8 }} align="stretch">
+              <VStack spacing={{ base: 4, md: 5, lg: 6 }} align="stretch">
                 {/* Pie Chart Card */}
                 <Card
                   bg="white"
