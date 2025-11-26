@@ -123,7 +123,7 @@ function BarChart({ data, isDark = false }: BarChartProps) {
         data: sortedData.map((item, idx) => ({
           name: item.name,
           y: item.y,
-          color: MODERN_COLORS[idx % MODERN_COLORS.length], // ⭐ SAME COLOR PALETTE
+          color: MODERN_COLORS[idx % MODERN_COLORS.length],
           category: item.category,
           custom: {
             name: item.name,

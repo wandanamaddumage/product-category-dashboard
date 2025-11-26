@@ -1,81 +1,38 @@
-import {
-  Box,
-  Button,
-  Card,
-  CardBody,
-  Checkbox,
-  CheckboxGroup,
-  Heading,
-  Select,
-  Stack,
-  Text,
-  VStack,
-  Badge,
-  IconButton,
-  HStack,
-} from '@chakra-ui/react';
-import { CloseIcon } from '@chakra-ui/icons';
+import { Card, CardBody, VStack, Button, Text } from '@chakra-ui/react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  categories,
-  getProductsByCategory,
-  productsData,
-} from '../../../const/productData';
 import type { AppDispatch, RootState } from '../store';
-import {
-  setSelectedCategory,
-  setSelectedProducts,
-} from '../store/slices/filterSlice';
+import { setSelectedCategory, setSelectedProducts } from '../store/slices/filterSlice';
 import { setFiltersChanged, submitReport } from '../store/slices/reportSlice';
+import { categories, getProductsByCategory, productsData } from '../../../const/productData';
+import GenericDropdown from './shared/Dropdown';
+import GenericCheckboxList from './shared/Checkbox';
 
 function FilterSection() {
   const dispatch = useDispatch<AppDispatch>();
-
-  const { selectedCategory, selectedProducts } = useSelector(
-    (state: RootState) => state.filter
-  );
+  const { selectedCategory, selectedProducts } = useSelector((state: RootState) => state.filter);
   const { filtersChanged } = useSelector((state: RootState) => state.report);
 
-  // Get products based on selected category
-  const availableProducts = selectedCategory
-    ? getProductsByCategory(selectedCategory)
-    : productsData;
+  const availableProducts = selectedCategory ? getProductsByCategory(selectedCategory) : productsData;
 
-const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-  const category = event.target.value;
-  dispatch(setSelectedCategory(category));
-  dispatch(setSelectedProducts([])); 
-  dispatch(setFiltersChanged(true));
-};
+  const markFiltersChanged = () => dispatch(setFiltersChanged(true));
+
+  const handleCategoryChange = (category: string) => {
+    dispatch(setSelectedCategory(category));
+    dispatch(setSelectedProducts([]));
+    markFiltersChanged();
+  };
 
   const handleProductSelection = (productIds: string[]) => {
-    // Convert string IDs to numbers before dispatching
-    const numericIds = productIds.map(id => Number(id));
-    dispatch(setSelectedProducts(numericIds));
-    dispatch(setFiltersChanged(true));
+    dispatch(setSelectedProducts(productIds.map(Number)));
+    markFiltersChanged();
   };
 
-  const handleRunReport = () => {
-    // Convert number IDs to strings before submitting the report
-    const productIdsAsStrings = selectedProducts.map(id => id.toString());
-    dispatch(submitReport(productIdsAsStrings));
-  };
+  const handleRunReport = () => dispatch(submitReport(selectedProducts.map(String)));
 
-  const handleClearCategory = () => {
-    dispatch(setSelectedCategory(null));
-    dispatch(setSelectedProducts([]));
-    dispatch(setFiltersChanged(true));
-  };
-
-  const handleClearProducts = () => {
-    dispatch(setSelectedProducts([]));
-    dispatch(setFiltersChanged(true));
-  };
-
-  const handleClearFilters = () => {
-    dispatch(setSelectedCategory(null));
-    dispatch(setSelectedProducts([]));
-    dispatch(setFiltersChanged(true));
+  const handleClearFilters = (clearCategory = true, clearProducts = true) => {
+    if (clearCategory) dispatch(setSelectedCategory(null));
+    if (clearProducts) dispatch(setSelectedProducts([]));
+    markFiltersChanged();
   };
 
   return (
@@ -87,142 +44,44 @@ const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
       borderColor="gray.100"
       position="sticky"
       top="20px"
-      h="auto"
       minH="600px"
       maxH="calc(100vh - 40px)"
       overflowY="auto"
       sx={{
-        '&::-webkit-scrollbar': {
-          width: '6px',
-        },
-        '&::-webkit-scrollbar-track': {
-          bg: 'gray.50',
-        },
-        '&::-webkit-scrollbar-thumb': {
-          bg: 'gray.300',
-          borderRadius: 'full',
-        },
-        '&::-webkit-scrollbar-thumb:hover': {
-          bg: 'gray.400',
-        },
+        '&::-webkit-scrollbar': { width: '6px' },
+        '&::-webkit-scrollbar-track': { bg: 'gray.50' },
+        '&::-webkit-scrollbar-thumb': { bg: 'gray.300', borderRadius: 'full' },
+        '&::-webkit-scrollbar-thumb:hover': { bg: 'gray.400' },
       }}
     >
       <CardBody p={{ base: 4, md: 5, lg: 6 }}>
         <VStack spacing={6} align="stretch">
           {/* Header */}
-          <Box>
-            <Heading
-              size="md"
-              color="gray.800"
-              fontWeight="700"
-              mb={1}
-            >
+          <VStack align="stretch" spacing={1}>
+            <Text fontWeight="700" fontSize="lg" color="gray.800">
               Filters
-            </Heading>
+            </Text>
             <Text fontSize="xs" color="gray.500">
               Select category and products
             </Text>
-          </Box>
+          </VStack>
 
-          {/* Category Filter */}
-          <Box>
-            <HStack justify="space-between" mb={3}>
-              <Text
-                fontSize="sm"
-                fontWeight="600"
-                color="gray.700"
-              >
-                Category
-              </Text>
-              {selectedCategory && (
-                <IconButton
-                  aria-label="Clear category"
-                  icon={<CloseIcon />}
-                  size="xs"
-                  colorScheme="red"
-                  variant="ghost"
-                  onClick={handleClearCategory}
-                />
-              )}
-            </HStack>
-            <Select
-              placeholder="Select a category"
-              value={selectedCategory || ''}
-              onChange={handleCategoryChange}
-              borderColor="gray.300"
-              _hover={{ borderColor: 'purple.400' }}
-              _focus={{ borderColor: 'purple.500', boxShadow: '0 0 0 1px #805ad5' }}
-            >
-              {categories.map((category) => (
-                <option 
-                  key={category} 
-                  value={category} 
-                  style={{ backgroundColor: 'white', color: 'black', fontWeight: 'normal' }}
-                >
-                  {category}
-                </option>
-              ))}
-            </Select>
-          </Box>
+          <GenericDropdown
+            label="Category"
+            options={categories.map((c) => ({ value: c }))}
+            selectedValue={selectedCategory}
+            onChange={handleCategoryChange}
+            onClear={() => handleClearFilters(true, false)}
+          />
 
-          {/* Product Selection */}
-          <Box>
-            <HStack justify="space-between" mb={3}>
-              <Text
-                fontSize="sm"
-                fontWeight="600"
-                color="gray.700"
-              >
-                Products
-                {selectedProducts.length > 0 && (
-                  <Badge ml={2} colorScheme="purple" fontSize="xs">
-                    {selectedProducts.length} selected
-                  </Badge>
-                )}
-              </Text>
-              {selectedProducts.length > 0 && (
-                <IconButton
-                  aria-label="Clear products"
-                  icon={<CloseIcon />}
-                  size="xs"
-                  colorScheme="red"
-                  variant="ghost"
-                  onClick={handleClearProducts}
-                />
-              )}
-            </HStack>
-            {!selectedCategory ? (
-              <Box
-                p={4}
-                bg="gray.50"
-                borderRadius="md"
-                border="1px dashed"
-                borderColor="gray.300"
-                textAlign="center"
-              >
-                <Text fontSize="sm" color="gray.500">
-                  Please select a category first
-                </Text>
-              </Box>
-            ) : (
-              <CheckboxGroup
-                value={selectedProducts.map(id => id.toString())}
-                onChange={(values) => handleProductSelection(values as string[])}
-              >
-                <Stack spacing={2} maxH="300px" overflowY="auto">
-                  {availableProducts.map((product) => (
-                    <Checkbox
-                      key={product.id}
-                      value={product.id.toString()}
-                      colorScheme="purple"
-                    >
-                      <Text fontSize="sm">{product.title}</Text>
-                    </Checkbox>
-                  ))}
-                </Stack>
-              </CheckboxGroup>
-            )}
-          </Box>
+          <GenericCheckboxList
+            label="Products"
+            options={availableProducts.map((p) => ({ id: p.id, label: p.title }))}
+            selectedValues={selectedProducts}
+            onChange={handleProductSelection}
+            onClear={() => handleClearFilters(false, true)}
+            disabled={!selectedCategory}
+          />
 
           {/* Action Buttons */}
           <VStack spacing={2}>
@@ -234,10 +93,7 @@ const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
               isDisabled={selectedProducts.length === 0}
               fontWeight="600"
               boxShadow={filtersChanged ? 'md' : 'sm'}
-              _hover={{
-                transform: 'translateY(-2px)',
-                boxShadow: 'lg',
-              }}
+              _hover={{ transform: 'translateY(-2px)', boxShadow: 'lg' }}
               transition="all 0.2s"
             >
               Run Report
@@ -246,7 +102,7 @@ const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
               variant="outline"
               size="md"
               width="100%"
-              onClick={handleClearFilters}
+              onClick={() => handleClearFilters()}
               colorScheme="gray"
               fontWeight="600"
             >
