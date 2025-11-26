@@ -1,4 +1,4 @@
-import { Card, CardBody } from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import Highcharts from 'highcharts';
 import HighchartsReactImport from 'highcharts-react-official';
 import type HighchartsReactComponent from 'highcharts-react-official';
@@ -25,39 +25,77 @@ type PieChartProps = {
 function PieChart({ data, onCategoryClick, isDark }: PieChartProps) {
   const chartRef = useRef<HighchartsReactComponent.RefObject>(null);
 
-  const MONO_COLORS = useMemo(() => {
-    const base = Highcharts.getOptions().colors?.[0] || '#7cb5ec';
-    const arr = Highcharts.getOptions().colors || [
-      '#7cb5ec',
-      '#434348',
-      '#90ed7d',
-      '#f7a35c',
+  // Modern vibrant color palette
+  const MODERN_COLORS = useMemo(() => {
+    return [
+      '#667eea', // Purple-blue
+      '#f093fb', // Pink
+      '#4facfe', // Sky blue
+      '#43e97b', // Green
+      '#fa709a', // Coral
+      '#feca57', // Yellow
+      '#48dbfb', // Cyan
+      '#ff6348', // Orange-red
     ];
-    return arr.map((_, i) =>
-      Highcharts.color(base)
-        .brighten((i - 3) / 7)
-        .get()
-    );
   }, []);
 
   const options: Highcharts.Options = {
-    chart: { type: 'pie', backgroundColor: 'transparent', height: '100%' },
-    title: {
-      text: 'Product Categories Distribution',
-      style: { color: isDark ? '#f3f4f6' : '#1a1a1a' },
+    chart: { 
+      type: 'pie', 
+      backgroundColor: 'transparent',
+      height: '100%',
+      style: {
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+      }
     },
-    tooltip: { pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>' },
+    title: {
+      text: '',
+      style: { display: 'none' }
+    },
+    tooltip: { 
+      backgroundColor: 'rgba(255, 255, 255, 0.95)',
+      borderRadius: 12,
+      borderWidth: 1,
+      borderColor: '#e2e8f0',
+      padding: 12,
+      style: {
+        fontSize: '13px',
+        fontWeight: '500'
+      },
+      pointFormat: '<b>{point.percentage:.1f}%</b><br/>{point.y} products',
+      shadow: {
+        offsetX: 0,
+        offsetY: 2,
+        width: 6,
+        opacity: 0.1
+      }
+    },
     plotOptions: {
       pie: {
         allowPointSelect: true,
         cursor: 'pointer',
-        borderRadius: 6,
-        colors: MONO_COLORS,
+        borderRadius: 8,
+        borderWidth: 3,
+        borderColor: 'white',
+        colors: MODERN_COLORS,
+        innerSize: '45%', // Creates a donut chart
         dataLabels: {
           enabled: true,
-          format: '<b>{point.name}</b>: {point.percentage:.1f} %',
-          style: { color: isDark ? '#f3f4f6' : '#1a1a1a', textOutline: 'none' },
-          filter: { property: 'percentage', operator: '>', value: 4 },
+          format: '<b>{point.name}</b><br/>{point.percentage:.1f}%',
+          distance: 20,
+          style: { 
+            color: isDark ? '#f3f4f6' : '#2d3748',
+            textOutline: 'none',
+            fontSize: '13px',
+            fontWeight: '600'
+          },
+          filter: { 
+            property: 'percentage', 
+            operator: '>', 
+            value: 3 
+          },
+          connectorWidth: 2,
+          connectorColor: '#cbd5e0'
         },
         point: {
           events: {
@@ -66,34 +104,113 @@ function PieChart({ data, onCategoryClick, isDark }: PieChartProps) {
             },
           },
         },
+        states: {
+          hover: {
+            brightness: 0.15,
+            halo: {
+              size: 12,
+              opacity: 0.25
+            }
+          },
+          select: {
+            color: undefined,
+            borderColor: '#667eea',
+            borderWidth: 3
+          }
+        },
+        showInLegend: true
       },
     },
     series: [
       {
         type: 'pie',
-        name: 'Categories',
-        data,
+        name: 'Products',
+        data: data.map(item => ({
+          name: item.name,
+          y: item.y,
+          category: item.category
+        })),
       },
     ],
-    legend: { layout: 'horizontal', align: 'center', verticalAlign: 'bottom' },
+    legend: { 
+      layout: 'horizontal', 
+      align: 'center', 
+      verticalAlign: 'bottom',
+      itemStyle: {
+        color: isDark ? '#e2e8f0' : '#4a5568',
+        fontSize: '13px',
+        fontWeight: '500'
+      },
+      itemHoverStyle: {
+        color: isDark ? '#ffffff' : '#1a202c'
+      },
+      itemMarginBottom: 8,
+      symbolRadius: 6,
+      symbolHeight: 12,
+      symbolWidth: 12,
+      itemDistance: 20
+    },
     credits: { enabled: false },
+    responsive: {
+      rules: [
+        {
+          condition: {
+            maxWidth: 500
+          },
+          chartOptions: {
+            plotOptions: {
+              pie: {
+                innerSize: '40%',
+                dataLabels: {
+                  enabled: true,
+                  format: '{point.name}<br/>{point.percentage:.0f}%',
+                  distance: 10,
+                  style: {
+                    fontSize: '11px'
+                  }
+                }
+              }
+            },
+            legend: {
+              itemStyle: {
+                fontSize: '11px'
+              }
+            }
+          }
+        }
+      ]
+    }
   };
 
   return (
-    <Card variant="outline">
-      <CardBody>
-        <Suspense fallback={<div>Loading chart...</div>}>
-          <HighchartsReact
-            highcharts={Highcharts}
-            options={options}
-            ref={chartRef}
-            constructorType="chart"
-            immutable={true}
-            allowChartUpdate={true}
-          />
-        </Suspense>
-      </CardBody>
-    </Card>
+    <Box 
+      w="100%" 
+      h="100%"
+      minH={{ base: '300px', md: '350px', lg: '400px' }}
+      position="relative"
+    >
+      <Suspense fallback={
+        <Box 
+          display="flex" 
+          alignItems="center" 
+          justifyContent="center" 
+          h="100%"
+          color="gray.500"
+          fontSize="sm"
+        >
+          Loading chart...
+        </Box>
+      }>
+        <HighchartsReact
+          highcharts={Highcharts}
+          options={options}
+          ref={chartRef}
+          constructorType="chart"
+          immutable={true}
+          allowChartUpdate={true}
+        />
+      </Suspense>
+    </Box>
   );
 }
 
