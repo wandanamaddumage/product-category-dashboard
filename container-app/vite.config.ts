@@ -4,38 +4,31 @@ import path from 'path';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
-type SharedDependency = {
-  singleton?: boolean;
-  requiredVersion?: string;
-  eager?: boolean;
-};
-
-type SharedDependencies = Record<string, string | SharedDependency>;
-
 export default defineConfig({
+  base: '/container-app/',  // REQUIRED FOR VERCEL
+
   plugins: [
     react(),
     tsconfigPaths(),
     federation({
       name: 'containerApp',
       remotes: {
-        chartApp: 'http://localhost:5001/assets/remoteEntry.js',
+        // UPDATE THIS AFTER DEPLOYING chart-app
+        chartApp: 'https://product-category-dashboard-chart-ap.vercel.app/remoteEntry.js',
       },
       shared: {
-        react: { singleton: true, requiredVersion: '^18.3.1' },
-        'react-dom': { singleton: true, requiredVersion: '^18.3.1' },
-        '@chakra-ui/react': { singleton: true, requiredVersion: '^2.8.0' },
-        '@emotion/react': { singleton: true, requiredVersion: '^11.14.0' },
-        '@emotion/styled': { singleton: true, requiredVersion: '^11.14.1' },
-        'framer-motion': { singleton: true, requiredVersion: '10.16.0' },
-        highcharts: { singleton: true, requiredVersion: '^12.4.0' },
-        'highcharts-react-official': {
-          singleton: true,
-          requiredVersion: '^3.2.3',
-        },
-      } as SharedDependencies,
+        react: { requiredVersion: false },
+        'react-dom': { requiredVersion: false },
+        '@chakra-ui/react': { requiredVersion: false },
+        '@emotion/react': { requiredVersion: false },
+        '@emotion/styled': { requiredVersion: false },
+        'framer-motion': { requiredVersion: false },
+        highcharts: { requiredVersion: false },
+        'highcharts-react-official': { requiredVersion: false },
+      },
     }),
   ],
+
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
     dedupe: [
@@ -49,12 +42,14 @@ export default defineConfig({
       'highcharts-react-official',
     ],
   },
+
   build: {
     modulePreload: false,
     target: 'esnext',
     minify: false,
     cssCodeSplit: false,
   },
+
   server: { port: 5000, strictPort: true, cors: true },
   preview: { port: 5000, strictPort: true },
 });
