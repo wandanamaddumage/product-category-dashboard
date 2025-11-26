@@ -6,7 +6,6 @@ import {
   setShowColumnChart,
 } from './slices/chartSlice';
 
-// Mock function to generate chart data based on filters
 function generateChartData(
   category: string,
   products: number[]
@@ -14,7 +13,7 @@ function generateChartData(
   pieData: Array<{ category: string; value: number }>;
   columnData: Array<{ category: string; value: number }>;
 } {
-  // Sample data generation
+  
   const pieData = [
     { category: 'Electronics', value: 30 },
     { category: 'Furniture', value: 25 },

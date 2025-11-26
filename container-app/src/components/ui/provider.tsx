@@ -5,13 +5,11 @@ import { Provider } from 'react-redux';
 import App from '../../App';
 import { store } from '../../store/store';
 
-// Extend the default theme
 const theme = extendTheme({
   config: {
     initialColorMode: 'light',
     useSystemColorMode: false,
   },
-  // Add your custom theme overrides here
 });
 
 const container = document.getElementById('root');

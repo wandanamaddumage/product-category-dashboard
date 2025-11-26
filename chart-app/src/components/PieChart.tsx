@@ -4,17 +4,20 @@ import HighchartsReactImport from 'highcharts-react-official';
 import type HighchartsReactComponent from 'highcharts-react-official';
 import { Suspense, useMemo, useRef } from 'react';
 
-// Normalize the shared module so React receives an actual component function,
-// even if the federation runtime hands us a nested module/object shape.
 const resolveHighchartsReact = (mod: any) => {
   if (typeof mod === 'function') return mod;
   if (mod?.HighchartsReact) return mod.HighchartsReact;
   if (mod?.default) return resolveHighchartsReact(mod.default);
   return mod;
 };
+
 const HighchartsReact = resolveHighchartsReact(HighchartsReactImport);
 
-type PiePoint = { name: string; y: number; category?: string };
+interface PiePoint {
+  name: string;
+  y: number;
+  category?: string;
+}
 
 type PieChartProps = {
   data: PiePoint[];
@@ -25,14 +28,12 @@ type PieChartProps = {
 function PieChart({ data, onCategoryClick, isDark }: PieChartProps) {
   const chartRef = useRef<HighchartsReactComponent.RefObject>(null);
 
-  // Generate color palette based on base color #6b46c1
   const MODERN_COLORS = useMemo(() => {
     const baseColor = '#845ddeff';
     const colors: string[] = [];
     
-    // Generate 8 variations of the base color
     for (let i = 0; i < 8; i++) {
-      const brightness = (i - 3) / 7; // Range from -0.43 to 0.71
+      const brightness = (i - 3) / 7;
       const color = Highcharts.color(baseColor).brighten(brightness).get() as string;
       colors.push(color);
     }
@@ -83,7 +84,7 @@ function PieChart({ data, onCategoryClick, isDark }: PieChartProps) {
         borderWidth: 3,
         borderColor: 'white',
         colors: MODERN_COLORS,
-        innerSize: '45%', // Creates a donut chart
+        innerSize: '45%', 
         dataLabels: {
           enabled: true,
           format: '<b>{point.name}</b><br/>{point.percentage:.1f}%',

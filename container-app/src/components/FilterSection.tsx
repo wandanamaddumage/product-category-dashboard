@@ -56,6 +56,7 @@ function FilterSection() {
     >
       <CardBody p={{ base: 4, md: 5, lg: 6 }}>
         <VStack spacing={6} align="stretch">
+          
           {/* Header */}
           <VStack align="stretch" spacing={1}>
             <Text fontWeight="700" fontSize="lg" color="gray.800">

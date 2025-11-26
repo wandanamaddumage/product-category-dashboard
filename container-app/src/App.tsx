@@ -25,7 +25,6 @@ import { setSelectedCategory } from './store/slices/filterSlice';
 import { resetReport } from './store/slices/reportSlice';
 import { DashboardHeader } from './components/DashboardHeader';
 
-// Normalize remote component
 const normalizeRemote = <T,>(mod: any) => {
   let comp = mod?.default ?? mod;
   if (comp?.default) comp = comp.default;
@@ -77,31 +76,25 @@ function App() {
   );
   const { hasRun } = useSelector((state: RootState) => state.report);
 
-  // Track if this is the initial mount
   const isInitialMount = useRef(true);
 
-  // Auto-hide bar chart when category changes
   const handleCategoryClick = (category: string) => {
     dispatch(setSelectedCategory(category));
     dispatch(resetReport());
   };
 
-  // Watch for filter changes and hide bar chart (but not when hasRun changes)
   useEffect(() => {
-    // Skip on initial mount
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
     }
     
-    // Hide bar chart when filters change after report has been run
     if (hasRun) {
       dispatch(resetReport());
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory, selectedProducts]);
 
-  // Product filtering logic
+  // Product filtering function
   const getFilteredProducts = () => {
     if (selectedProducts.length > 0) {
       return productsData.filter(p => selectedProducts.includes(p.id));

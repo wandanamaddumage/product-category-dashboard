@@ -11,6 +11,7 @@ const resolveHighchartsReact = (mod: any) => {
   if (mod?.default) return resolveHighchartsReact(mod.default);
   return mod;
 };
+
 const HighchartsReact = resolveHighchartsReact(HighchartsReactImport);
 
 type BarChartProps = {
@@ -18,15 +19,15 @@ type BarChartProps = {
   isDark?: boolean;
 };
 
+interface ChartDataPoint {
+  name: string;
+  y: number;
+  category?: string;
+  price?: number;
+}
+
 function BarChart({ data, isDark = false }: BarChartProps) {
   const chartRef = useRef<HighchartsReactComponent.RefObject>(null);
-
-  interface ChartDataPoint {
-    name: string;
-    y: number;
-    category?: string;
-    price?: number;
-  }
 
   const showIndividualProducts = data.length <= 5;
 
@@ -54,13 +55,16 @@ function BarChart({ data, isDark = false }: BarChartProps) {
 
   const sortedData = [...chartData].sort((a, b) => b.y - a.y);
 
-  // ⭐ SAME COLOR SYSTEM AS PIE CHART ⭐
+  /**
+   * Generate a consistent color palette based on the brand color
+   * Creates variations of the base brand color for chart segments
+   */
   const MODERN_COLORS = useMemo(() => {
     const baseColor = '#845ddeff';
     const colors: string[] = [];
 
     for (let i = 0; i < 8; i++) {
-      const brightness = (i - 3) / 7; // Range from -0.43 to 0.71
+      const brightness = (i - 3) / 7;
       const color = Highcharts.color(baseColor).brighten(brightness).get() as string;
       colors.push(color);
     }
