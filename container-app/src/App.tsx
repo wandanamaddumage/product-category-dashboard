@@ -11,7 +11,7 @@ import {
   SimpleGrid,
   Flex,
 } from '@chakra-ui/react';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   getPieChartData,
@@ -76,11 +76,29 @@ function App() {
   );
   const { hasRun } = useSelector((state: RootState) => state.report);
 
+  // Track if this is the initial mount
+  const isInitialMount = useRef(true);
+
   // Auto-hide bar chart when category changes
   const handleCategoryClick = (category: string) => {
     dispatch(setSelectedCategory(category));
     dispatch(resetReport());
   };
+
+  // Watch for filter changes and hide bar chart (but not when hasRun changes)
+  useEffect(() => {
+    // Skip on initial mount
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    
+    // Hide bar chart when filters change after report has been run
+    if (hasRun) {
+      dispatch(resetReport());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedCategory, selectedProducts]);
 
   // Product filtering logic
   const getFilteredProducts = () => {
