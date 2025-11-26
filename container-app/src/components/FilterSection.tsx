@@ -3,13 +3,19 @@ import { CloseIcon } from '@chakra-ui/icons';
 import {
   Box,
   Button,
-  HStack,
   IconButton,
   Select,
   Tag,
   TagLabel,
   Text,
   VStack,
+  HStack,
+  Card,
+  CardBody,
+  Heading,
+  Divider,
+  Flex,
+  Badge,
 } from '@chakra-ui/react';
 import React, { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -34,7 +40,6 @@ export default function FilterSection() {
   );
   useSelector((s: RootState) => s.report);
 
-  // locally track run-disabled state (disabled immediately after running)
   const [justRan, setJustRan] = useState(false);
 
   const productOptions = useMemo<Product[]>(
@@ -48,7 +53,7 @@ export default function FilterSection() {
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const cat = e.target.value || null;
     dispatch(setSelectedCategory(cat));
-    dispatch(setSelectedProducts([])); // clear product selection on category change
+    dispatch(setSelectedProducts([]));
     setJustRan(false);
   };
 
@@ -70,90 +75,266 @@ export default function FilterSection() {
     setJustRan(false);
   };
 
+  const hasActiveFilters = selectedCategory || selectedProducts.length > 0;
+
   return (
-    <VStack align="start" spacing={4}>
-      <HStack spacing={4} w="full">
-        <Box minW="220px">
-          <Text mb={1}>Category</Text>
-          <Select
-            placeholder="Select category"
-            value={selectedCategory ?? ''}
-            onChange={handleCategoryChange}
-          >
-            {categories.map(c => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </Select>
-        </Box>
+    <Card
+      bg="white"
+      shadow="lg"
+      borderRadius="2xl"
+      border="1px"
+      borderColor="gray.100"
+      overflow="hidden"
+      transition="all 0.3s"
+      w="full"
+    >
+      <CardBody p={{ base: 5, md: 6 }}>
+        <VStack align="stretch" spacing={{ base: 4, md: 5 }}>
+          {/* Header */}
+          <Flex justify="space-between" align="center">
+            <Box>
+              <Heading 
+                size={{ base: 'sm', md: 'md' }} 
+                color="gray.800"
+                fontWeight="700"
+                mb={1}
+              >
+                Filters
+              </Heading>
+              <Text fontSize="xs" color="gray.500">
+                Customize your view
+              </Text>
+            </Box>
+            {hasActiveFilters && (
+              <Badge
+                colorScheme="blue"
+                borderRadius="full"
+                px={2}
+                py={1}
+                fontSize="xs"
+              >
+                {(selectedCategory ? 1 : 0) + selectedProducts.length} active
+              </Badge>
+            )}
+          </Flex>
 
-        <Box flex="1">
-          <Text mb={1}>Products (multi-select)</Text>
-          <Select
-            placeholder="Select products (select a category first)"
-            onChange={handleProductsChange}
-            multiple
-            isDisabled={!selectedCategory}
-            size="md"
-            height="40px"
-          >
-            {productOptions.map(p => (
-              <option key={p.id} value={p.id}>
-                {p.title}
-              </option>
-            ))}
-          </Select>
-        </Box>
+          <Divider />
 
-        <Button colorScheme="blue" onClick={handleRun} isDisabled={runDisabled}>
-          Run Report
-        </Button>
-
-        <Button variant="ghost" onClick={handleClearAll}>
-          Clear All
-        </Button>
-      </HStack>
-
-      <HStack spacing={2}>
-        {selectedCategory && (
-          <Tag>
-            <TagLabel>{selectedCategory}</TagLabel>
-            <IconButton
-              aria-label="clear-category"
-              size="xs"
-              icon={<CloseIcon />}
-              ml={2}
-              onClick={() => {
-                dispatch(setSelectedCategory(null));
-                dispatch(setSelectedProducts([]));
-                setJustRan(false);
+          {/* Category Filter */}
+          <Box>
+            <Text 
+              fontSize="sm" 
+              fontWeight="600" 
+              color="gray.700" 
+              mb={2}
+            >
+              Select Category
+            </Text>
+            <Select
+              placeholder="All categories"
+              value={selectedCategory ?? ''}
+              onChange={handleCategoryChange}
+              size={{ base: 'md', md: 'md' }}
+              borderRadius="lg"
+              borderColor="gray.300"
+              _hover={{ borderColor: 'blue.400' }}
+              _focus={{ 
+                borderColor: 'blue.500', 
+                boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)' 
               }}
-            />
-          </Tag>
-        )}
+              bg="gray.50"
+              transition="all 0.2s"
+            >
+              {categories.map(c => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </Select>
+          </Box>
 
-        {selectedProducts.map(id => {
-          const p = productsData.find(pp => pp.id === id);
-          return (
-            <Tag key={id}>
-              <TagLabel>{p?.title ?? id}</TagLabel>
-              <IconButton
-                aria-label="clear-product"
-                size="xs"
-                icon={<CloseIcon />}
-                ml={2}
-                onClick={() => {
-                  dispatch(
-                    setSelectedProducts(selectedProducts.filter(s => s !== id))
-                  );
-                  setJustRan(false);
-                }}
-              />
-            </Tag>
-          );
-        })}
-      </HStack>
-    </VStack>
+          {/* Products Filter */}
+          <Box>
+            <Flex justify="space-between" align="center" mb={2}>
+              <Text 
+                fontSize="sm" 
+                fontWeight="600" 
+                color="gray.700"
+              >
+                Select Products
+              </Text>
+              {selectedProducts.length > 0 && (
+                <Badge 
+                  colorScheme="purple" 
+                  borderRadius="full"
+                  fontSize="2xs"
+                >
+                  {selectedProducts.length} selected
+                </Badge>
+              )}
+            </Flex>
+            <Select
+              placeholder={
+                selectedCategory 
+                  ? "Choose products..." 
+                  : "Select a category first"
+              }
+              value={selectedProducts.map(String)}
+              onChange={handleProductsChange}
+              multiple
+              isDisabled={!selectedCategory}
+              size="md"
+              minH={{ base: '120px', md: '140px' }}
+              borderRadius="lg"
+              borderColor="gray.300"
+              _hover={{ borderColor: 'blue.400' }}
+              _focus={{ 
+                borderColor: 'blue.500', 
+                boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)' 
+              }}
+              bg="gray.50"
+              transition="all 0.2s"
+              sx={{
+                option: {
+                  padding: '8px 12px',
+                  cursor: 'pointer',
+                }
+              }}
+            >
+              {productOptions.map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.title}
+                </option>
+              ))}
+            </Select>
+            <Text fontSize="2xs" color="gray.500" mt={1}>
+              Hold Ctrl/Cmd to select multiple
+            </Text>
+          </Box>
+
+          <Divider />
+
+          {/* Action Buttons */}
+          <VStack spacing={2} w="full">
+            <Button 
+              colorScheme="blue" 
+              onClick={handleRun} 
+              isDisabled={runDisabled}
+              w="full"
+              size={{ base: 'md', md: 'md' }}
+              borderRadius="lg"
+              fontWeight="600"
+              boxShadow="sm"
+              _hover={{ 
+                transform: 'translateY(-1px)', 
+                boxShadow: 'md' 
+              }}
+              transition="all 0.2s"
+            >
+              Run Report
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={handleClearAll}
+              w="full"
+              size={{ base: 'md', md: 'md' }}
+              borderRadius="lg"
+              fontWeight="600"
+              color="gray.600"
+              _hover={{ bg: 'gray.100' }}
+            >
+              Clear All Filters
+            </Button>
+          </VStack>
+
+          {/* Selected Filters Tags */}
+          {hasActiveFilters && (
+            <>
+              <Divider />
+              <Box>
+                <Text 
+                  fontSize="xs" 
+                  fontWeight="600" 
+                  color="gray.600" 
+                  mb={2}
+                >
+                  ACTIVE FILTERS
+                </Text>
+                <Flex gap={2} wrap="wrap">
+                  {selectedCategory && (
+                    <Tag
+                      size={{ base: 'sm', md: 'md' }}
+                      borderRadius="full"
+                      colorScheme="blue"
+                      variant="subtle"
+                      py={1}
+                      px={3}
+                    >
+                      <TagLabel fontWeight="500">{selectedCategory}</TagLabel>
+                      <IconButton
+                        aria-label="clear-category"
+                        size="xs"
+                        icon={<CloseIcon boxSize={2} />}
+                        ml={2}
+                        variant="ghost"
+                        borderRadius="full"
+                        minW="auto"
+                        h="auto"
+                        p={1}
+                        _hover={{ bg: 'blue.200' }}
+                        onClick={() => {
+                          dispatch(setSelectedCategory(null));
+                          dispatch(setSelectedProducts([]));
+                          setJustRan(false);
+                        }}
+                      />
+                    </Tag>
+                  )}
+
+                  {selectedProducts.map(id => {
+                    const p = productsData.find(pp => pp.id === id);
+                    return (
+                      <Tag
+                        key={id}
+                        size={{ base: 'sm', md: 'md' }}
+                        borderRadius="full"
+                        colorScheme="purple"
+                        variant="subtle"
+                        py={1}
+                        px={3}
+                      >
+                        <TagLabel fontWeight="500">
+                          {p?.title ?? id}
+                        </TagLabel>
+                        <IconButton
+                          aria-label="clear-product"
+                          size="xs"
+                          icon={<CloseIcon boxSize={2} />}
+                          ml={2}
+                          variant="ghost"
+                          borderRadius="full"
+                          minW="auto"
+                          h="auto"
+                          p={1}
+                          _hover={{ bg: 'purple.200' }}
+                          onClick={() => {
+                            dispatch(
+                              setSelectedProducts(
+                                selectedProducts.filter(s => s !== id)
+                              )
+                            );
+                            setJustRan(false);
+                          }}
+                        />
+                      </Tag>
+                    );
+                  })}
+                </Flex>
+              </Box>
+            </>
+          )}
+        </VStack>
+      </CardBody>
+    </Card>
   );
 }
