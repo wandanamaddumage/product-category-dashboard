@@ -1,4 +1,3 @@
-// src/store/filterSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 type FilterState = {
@@ -17,12 +16,18 @@ const filterSlice = createSlice({
   reducers: {
     setSelectedCategory(state, action: PayloadAction<string | null>) {
       state.selectedCategory = action.payload;
-      if (!action.payload) {
-        state.selectedProducts = [];
-      }
+      // Clear products when category changes or is cleared
+      state.selectedProducts = [];
     },
     setSelectedProducts(state, action: PayloadAction<number[]>) {
       state.selectedProducts = action.payload;
+    },
+    clearCategory(state) {
+      state.selectedCategory = null;
+      state.selectedProducts = [];
+    },
+    clearProducts(state) {
+      state.selectedProducts = [];
     },
     clearFilters(state) {
       state.selectedCategory = null;
@@ -31,6 +36,11 @@ const filterSlice = createSlice({
   },
 });
 
-export const { setSelectedCategory, setSelectedProducts, clearFilters } =
-  filterSlice.actions;
+export const { 
+  setSelectedCategory, 
+  setSelectedProducts, 
+  clearCategory,
+  clearProducts,
+  clearFilters 
+} = filterSlice.actions;
 export default filterSlice.reducer;
