@@ -87,6 +87,25 @@ const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
       borderColor="gray.100"
       position="sticky"
       top="20px"
+      h="auto"
+      minH="600px"
+      maxH="calc(100vh - 40px)"
+      overflowY="auto"
+      sx={{
+        '&::-webkit-scrollbar': {
+          width: '6px',
+        },
+        '&::-webkit-scrollbar-track': {
+          bg: 'gray.50',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          bg: 'gray.300',
+          borderRadius: 'full',
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          bg: 'gray.400',
+        },
+      }}
     >
       <CardBody p={{ base: 4, md: 5, lg: 6 }}>
         <VStack spacing={6} align="stretch">

@@ -44,9 +44,13 @@ function PieChart({ data, onCategoryClick, isDark }: PieChartProps) {
     chart: { 
       type: 'pie', 
       backgroundColor: 'transparent',
-      height: '100%',
+      height: 'auto',
       style: {
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+        minHeight: '500px',
+        maxHeight: 'calc(100vh - 40px)',
+        overflowY: 'auto',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        boxSizing: 'border-box'
       }
     },
     title: {

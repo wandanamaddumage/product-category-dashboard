@@ -22,8 +22,9 @@ import {
 import FilterSection from './components/FilterSection';
 import type { AppDispatch, RootState } from './store';
 import { setSelectedCategory } from './store/slices/filterSlice';
-import { setFiltersChanged } from './store/slices/reportSlice';
+import { resetReport } from './store/slices/reportSlice';
 
+// Normalize remote component
 const normalizeRemote = <T,>(mod: any) => {
   let comp = mod?.default ?? mod;
   if (comp?.default) comp = comp.default;
@@ -42,34 +43,24 @@ type RemoteBarChartProps = {
 };
 
 const PieChart = lazy(() =>
-  import('chartApp/PieChart').then(mod => {
-    return { default: normalizeRemote<RemotePieChartProps>(mod) };
-  })
-);
-const BarChart = lazy(() =>
-  import('chartApp/BarChart').then(mod => {
-    return { default: normalizeRemote<RemoteBarChartProps>(mod) };
-  })
+  import('chartApp/PieChart').then(mod => ({
+    default: normalizeRemote<RemotePieChartProps>(mod),
+  }))
 );
 
-// Loading component
+const BarChart = lazy(() =>
+  import('chartApp/BarChart').then(mod => ({
+    default: normalizeRemote<RemoteBarChartProps>(mod),
+  }))
+);
+
+// Loading Spinner
 const ChartLoader = () => (
-  <Card
-    bg="white"
-    shadow="sm"
-    borderRadius="xl"
-    border="1px"
-    borderColor="gray.100"
-  >
+  <Card bg="white" shadow="sm" borderRadius="xl" border="1px" borderColor="gray.100">
     <CardBody>
-      <Center p={{ base: 6, md: 10 }}>
+      <Center p={{ base: 4, md: 6 }}>
         <VStack spacing={4}>
-          <Spinner 
-            size="xl" 
-            thickness="4px"
-            speed="0.65s"
-            color="blue.500"
-          />
+          <Spinner size="xl" thickness="4px" speed="0.65s" color="purple.500" />
           <Text color="gray.500" fontSize="sm">Loading chart...</Text>
         </VStack>
       </Center>
@@ -80,214 +71,116 @@ const ChartLoader = () => (
 function App() {
   const dispatch = useDispatch<AppDispatch>();
 
-  // Redux state
   const { selectedCategory, selectedProducts } = useSelector(
     (state: RootState) => state.filter
   );
   const { hasRun } = useSelector((state: RootState) => state.report);
 
-  // Get filtered products based on selection
-  // If products are selected, return only those products
-  // If only category is selected, return all products in that category
-  // If nothing is selected, return all products
+  // Auto-hide bar chart when category changes
+  const handleCategoryClick = (category: string) => {
+    dispatch(setSelectedCategory(category));
+    dispatch(resetReport());
+  };
+
+  // Product filtering logic
   const getFilteredProducts = () => {
-    console.log('Filtering products with:', { selectedCategory, selectedProducts });
-    
     if (selectedProducts.length > 0) {
-      const filtered = productsData.filter(p => selectedProducts.includes(p.id));
-      console.log('Filtered by selected products:', filtered);
-      return filtered;
+      return productsData.filter(p => selectedProducts.includes(p.id));
     }
-    
     if (selectedCategory) {
-      const byCategory = getProductsByCategory(selectedCategory);
-      console.log(`Filtered by category '${selectedCategory}':`, byCategory);
-      return byCategory;
+      return getProductsByCategory(selectedCategory);
     }
-    
-    console.log('No filters applied, returning all products');
     return productsData;
   };
 
   const filteredProducts = getFilteredProducts();
-  console.log('Final filtered products:', filteredProducts);
 
-  console.log('Filtered products:', filteredProducts);
-  
-  // Get pie chart data based on filters
-  // If products are selected, show only those products
-  // If only category is selected, show all products in that category
-  // If nothing is selected, show all products by category
   const pieChartData = getPieChartData(
     selectedProducts.length > 0 ? selectedProducts : undefined
   );
 
-  // Handle pie chart category click
-  const handleCategoryClick = (category: string) => {
-    dispatch(setSelectedCategory(category));
-    dispatch(setFiltersChanged(true));
-  };
-
   return (
-    <Box 
-      minH="100vh" 
-      bg="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-      position="relative"
-      _before={{
-        content: '""',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        bg: 'white',
-        opacity: 0.95,
-      }}
-    >
-      <Box position="relative" zIndex={1}>
-        <Container 
-          maxW="1400px" 
-          py={{ base: 6, md: 8, lg: 12 }}
-          px={{ base: 4, md: 6, lg: 8 }}
-        >
-          {/* Header */}
-          <Box 
-            textAlign="center" 
-            mb={{ base: 6, md: 8, lg: 10 }}
+    <Box bg="gray.50" minH="100vh">
+      <Container maxW="1300px" py={{ base: 4, md: 8 }}>
+        
+        {/* Header */}
+        <Box textAlign="center" mb={{ base: 5, md: 8 }}>
+          <Heading 
+            fontSize={{ base: '2xl', md: '4xl' }}
+            fontWeight="800"
+            color="purple.600"
+            mb={2}
           >
-            <Heading 
-              fontSize={{ base: '2xl', sm: '3xl', md: '4xl', lg: '5xl' }}
-              fontWeight="800"
-              bgGradient="linear(to-r, blue.600, purple.600)"
-              bgClip="text"
-              mb={3}
-              letterSpacing="tight"
-            >
-              Product Dashboard
-            </Heading>
-            <Text 
-              fontSize={{ base: 'sm', md: 'md', lg: 'lg' }} 
-              color="gray.600"
-              fontWeight="500"
-            >
-              Analyze products and categories with interactive charts
-            </Text>
+            Product Dashboard
+          </Heading>
+          <Text fontSize={{ base: 'sm', md: 'md' }} color="gray.600">
+            Analyze categories and products with interactive charts
+          </Text>
+        </Box>
+
+        {/* Layout */}
+        <SimpleGrid
+          columns={{ base: 1, lg: 12 }}
+          spacing={{ base: 4, md: 6 }}
+          alignItems="start"
+        >
+          {/* Filters — Left */}
+          <Box gridColumn={{ base: 'span 1', lg: 'span 4' }} h="auto" style={{ height: 'auto' }}>
+            <FilterSection />
           </Box>
 
-          {/* Main Content Grid */}
-          <SimpleGrid
-            columns={{ base: 1, lg: 12 }}
-            spacing={{ base: 4, md: 6, lg: 8 }}
-            alignItems="start"
-          >
-            {/* Left Side - Filters */}
-            <Box gridColumn={{ base: 'span 1', lg: 'span 3' }}>
-              <Suspense fallback={<ChartLoader />}>
-                <FilterSection />
-              </Suspense>
-            </Box>
+          {/* Charts — Right */}
+          <Box gridColumn={{ base: 'span 1', lg: 'span 8' }}>
+            <VStack spacing={{ base: 4, md: 6 }} align="stretch">
+              
+              {/* Pie Chart */}
+              <Card borderRadius="xl" shadow="md">
+                <CardBody p={{ base: 4, md: 6 }}>
+                  <Flex justify="space-between" mb={4}>
+                    <Box>
+                      <Heading size="md" color="gray.800">Product Categories</Heading>
+                      <Text fontSize="sm" color="gray.500">Click a category to filter</Text>
+                    </Box>
+                  </Flex>
 
-            {/* Right Side - Charts */}
-            <Box gridColumn={{ base: 'span 1', lg: 'span 9' }}>
-              <VStack spacing={{ base: 4, md: 5, lg: 6 }} align="stretch">
-                {/* Pie Chart Card */}
-                <Card
-                  bg="white"
-                  shadow="lg"
-                  borderRadius="2xl"
-                  border="1px"
-                  borderColor="gray.100"
-                  overflow="hidden"
-                  transition="all 0.3s"
-                  _hover={{ shadow: 'xl', transform: 'translateY(-2px)' }}
-                >
-                  <CardBody p={{ base: 5, md: 6, lg: 8 }}>
-                    <Flex 
-                      justify="space-between" 
-                      align="center" 
-                      mb={{ base: 4, md: 6 }}
-                    >
+                  <Box minH="320px" display="flex" justifyContent="center">
+                    <Suspense fallback={<ChartLoader />}>
+                      <PieChart
+                        data={pieChartData}
+                        onCategoryClick={handleCategoryClick}
+                        isDark={false}
+                      />
+                    </Suspense>
+                  </Box>
+                </CardBody>
+              </Card>
+
+              {/* Bar Chart — Shown after Run Report */}
+              {hasRun && (
+                <Card borderRadius="xl" shadow="md">
+                  <CardBody p={{ base: 4, md: 6 }}>
+                    <Flex justify="space-between" mb={3}>
                       <Box>
-                        <Heading 
-                          size={{ base: 'md', md: 'lg' }}
-                          color="gray.800"
-                          fontWeight="700"
-                          mb={1}
-                        >
-                          Product Categories
-                        </Heading>
+                        <Heading size="md" color="gray.800">Product Analysis</Heading>
                         <Text fontSize="sm" color="gray.500">
-                          Click on a category to filter
+                          {filteredProducts.length} products shown
                         </Text>
                       </Box>
                     </Flex>
-                    <Box
-                      minH={{ base: '300px', md: '350px', lg: '400px' }}
-                      display="flex"
-                      alignItems="center"
-                      justifyContent="center"
-                    >
+
+                    <Box minH="320px" display="flex" justifyContent="center">
                       <Suspense fallback={<ChartLoader />}>
-                        <PieChart
-                          data={pieChartData}
-                          onCategoryClick={handleCategoryClick}
-                          isDark={false}
-                        />
+                        <BarChart data={filteredProducts} />
                       </Suspense>
                     </Box>
                   </CardBody>
                 </Card>
+              )}
 
-                {/* Bar Chart Card - Only visible after Run Report */}
-                {hasRun && (
-                  <Card
-                    bg="white"
-                    shadow="lg"
-                    borderRadius="2xl"
-                    border="1px"
-                    borderColor="gray.100"
-                    overflow="hidden"
-                    transition="all 0.3s"
-                    _hover={{ shadow: 'xl', transform: 'translateY(-2px)' }}
-                  >
-                    <CardBody p={{ base: 5, md: 6, lg: 8 }}>
-                      <Flex 
-                        justify="space-between" 
-                        align="center" 
-                        mb={{ base: 4, md: 6 }}
-                      >
-                        <Box>
-                          <Heading 
-                            size={{ base: 'md', md: 'lg' }}
-                            color="gray.800"
-                            fontWeight="700"
-                            mb={1}
-                          >
-                            Product Analysis
-                          </Heading>
-                          <Text fontSize="sm" color="gray.500">
-                            {filteredProducts.length} products displayed
-                          </Text>
-                        </Box>
-                      </Flex>
-                      <Box
-                        minH={{ base: '300px', md: '350px', lg: '400px' }}
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="center"
-                      >
-                        <Suspense fallback={<ChartLoader />}>
-                          <BarChart data={filteredProducts} />
-                        </Suspense>
-                      </Box>
-                    </CardBody>
-                  </Card>
-                )}
-              </VStack>
-            </Box>
-          </SimpleGrid>
-        </Container>
-      </Box>
+            </VStack>
+          </Box>
+        </SimpleGrid>
+      </Container>
     </Box>
   );
 }
