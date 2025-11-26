@@ -23,15 +23,33 @@ type BarChartProps = {
 function BarChart({ data, isDark = false }: BarChartProps) {
   const chartRef = useRef<HighchartsReactComponent.RefObject>(null);
 
-  const categorySales = useMemo(() => {
+  // If we have 5 or fewer products, show them individually, otherwise group by category
+  const showIndividualProducts = data.length <= 5;
+
+  const chartData = useMemo((): ChartDataPoint[] => {
+    if (showIndividualProducts) {
+      // Show individual products
+      return data.map(product => ({
+        name: product.title,
+        y: product.sales,
+        category: product.category,
+        price: product.price
+      }));
+    }
+    
+    // Group by category
     const map = new Map<string, number>();
     data.forEach(p =>
       map.set(p.category, (map.get(p.category) || 0) + p.sales)
     );
-    return Array.from(map.entries()).map(([name, y]) => ({ name, y }));
-  }, [data]);
+    return Array.from(map.entries()).map(([name, y]) => ({
+      name,
+      y,
+      category: name
+    }));
+  }, [data, showIndividualProducts]);
 
-  const sortedData = [...categorySales].sort((a, b) => b.y - a.y);
+  const sortedData = [...chartData].sort((a, b) => b.y - a.y);
 
   // Modern color palette matching the pie chart
   const CATEGORY_COLORS: Record<string, string> = {
@@ -40,6 +58,19 @@ function BarChart({ data, isDark = false }: BarChartProps) {
     'Kitchen': '#4facfe',
     'Sports': '#43e97b',
     'Bags': '#fa709a',
+  };
+  
+  // Define the shape of our chart data point
+  interface ChartDataPoint {
+    name: string;
+    y: number;
+    category?: string;
+    price?: number;
+  }
+
+  // Get color based on category or use a fallback
+  const getBarColor = (item: { category?: string }) => {
+    return item.category ? (CATEGORY_COLORS[item.category] || '#667eea') : '#667eea';
   };
 
   const options: Highcharts.Options = {
@@ -96,7 +127,14 @@ function BarChart({ data, isDark = false }: BarChartProps) {
         data: sortedData.map(item => ({
           name: item.name,
           y: item.y,
-          color: CATEGORY_COLORS[item.name] || '#667eea'
+          color: getBarColor(item),
+          category: item.category,
+          custom: {
+            name: item.name,
+            category: item.category,
+            sales: item.y,
+            price: item.price
+          }
         })),
         showInLegend: false
       }
@@ -136,7 +174,26 @@ function BarChart({ data, isDark = false }: BarChartProps) {
         fontSize: '13px',
         fontWeight: '500'
       },
-      pointFormat: '<b>{point.y}</b> units sold',
+      useHTML: true,
+      formatter: function(this: Highcharts.Point) {
+        const point = this as unknown as ChartDataPoint & { y: number, name?: string, category?: string };
+        return `
+          <div style="text-align: center; min-width: 120px;">
+            <div style="font-weight: 700; color: #2d3748; margin-bottom: 4px;">
+              ${point.name || 'N/A'}
+            </div>
+            ${point.category ? `<div style="color: #718096; font-size: 12px; margin-bottom: 2px;">
+              ${point.category}
+            </div>` : ''}
+            <div style="font-weight: 600; color: #4a5568;">
+              <b>${point.y}</b> units sold
+            </div>
+            ${point.price ? `<div style="color: #718096; font-size: 11px; margin-top: 2px;">
+              $${point.price.toFixed(2)}
+            </div>` : ''}
+          </div>
+        `;
+      },
       shadow: {
         offsetX: 0,
         offsetY: 2,
