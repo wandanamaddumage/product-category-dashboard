@@ -6,7 +6,7 @@ interface ReportState {
   submittedProducts: string[]; // Track which products were submitted
 }
 
-const initialState: ReportState = {
+export const initialState: ReportState = {
   hasRun: false,
   filtersChanged: false,
   submittedProducts: [],
@@ -27,7 +27,7 @@ const reportSlice = createSlice({
       state.filtersChanged = false;
       state.submittedProducts = action.payload; // Save the selected products
     },
-    resetReport: (state) => {
+    resetReport: state => {
       state.hasRun = false;
       state.filtersChanged = false;
       state.submittedProducts = [];
@@ -35,5 +35,6 @@ const reportSlice = createSlice({
   },
 });
 
-export const { setHasRun, setFiltersChanged, submitReport, resetReport } = reportSlice.actions;
+export const { setHasRun, setFiltersChanged, submitReport, resetReport } =
+  reportSlice.actions;
 export default reportSlice.reducer;

@@ -5,7 +5,7 @@ type FilterState = {
   selectedProducts: number[]; // product ids
 };
 
-const initialState: FilterState = {
+export const initialState: FilterState = {
   selectedCategory: null,
   selectedProducts: [],
 };
@@ -36,11 +36,11 @@ const filterSlice = createSlice({
   },
 });
 
-export const { 
-  setSelectedCategory, 
-  setSelectedProducts, 
+export const {
+  setSelectedCategory,
+  setSelectedProducts,
   clearCategory,
   clearProducts,
-  clearFilters 
+  clearFilters,
 } = filterSlice.actions;
 export default filterSlice.reducer;
