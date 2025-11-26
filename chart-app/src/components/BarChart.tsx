@@ -72,10 +72,13 @@ function BarChart({ data, isDark = false }: BarChartProps) {
     chart: {
       type: 'column',
       backgroundColor: 'transparent',
-      height: '100%',
+      height: 'auto',
       style: {
-        fontFamily:
-          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+        minHeight: '500px',
+        maxHeight: 'calc(100vh - 40px)',
+        overflowY: 'auto',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+        boxSizing: 'border-box'
       },
       animation: { duration: 800 }
     },
