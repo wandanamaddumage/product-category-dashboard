@@ -9,20 +9,22 @@ import {
   TagLabel,
   Text,
   VStack,
-  HStack,
   Card,
   CardBody,
   Heading,
   Divider,
   Flex,
   Badge,
+  Checkbox,
+  CheckboxGroup,
+  Stack,
 } from '@chakra-ui/react';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   categories,
   getProductsByCategory,
-  Product,
+  type Product,
   productsData,
 } from '../../../const/productData';
 import { AppDispatch, RootState } from '../store';
@@ -31,51 +33,72 @@ import {
   setSelectedCategory,
   setSelectedProducts,
 } from '../store/slices/filterSlice';
-import { runReport } from '../store/slices/reportSlice';
+import { runReport, setFiltersChanged } from '../store/slices/reportSlice';
 
 export default function FilterSection() {
   const dispatch = useDispatch<AppDispatch>();
+  
+  // Redux state
   const { selectedCategory, selectedProducts } = useSelector(
     (s: RootState) => s.filter
   );
-  useSelector((s: RootState) => s.report);
+  const { hasRun, filtersChanged } = useSelector((s: RootState) => s.report);
 
-  const [justRan, setJustRan] = useState(false);
-
+  // Get products for selected category
   const productOptions = useMemo<Product[]>(
     () => (selectedCategory ? getProductsByCategory(selectedCategory) : []),
     [selectedCategory]
   );
 
-  const runDisabled =
-    (!selectedCategory && selectedProducts.length === 0) || justRan;
+  // Check if filters are empty
+  const areFiltersEmpty = !selectedCategory && selectedProducts.length === 0;
 
+  // Run Report button should be disabled when:
+  // 1. Both filters are empty, OR
+  // 2. Report has been run AND filters haven't changed since
+  const runDisabled = areFiltersEmpty || (hasRun && !filtersChanged);
+
+  const hasActiveFilters = selectedCategory || selectedProducts.length > 0;
+
+  // Handle category change
   const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const cat = e.target.value || null;
     dispatch(setSelectedCategory(cat));
-    dispatch(setSelectedProducts([]));
-    setJustRan(false);
+    // Products are cleared automatically by the reducer
+    dispatch(setFiltersChanged(true));
   };
 
-  const handleProductsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selected = Array.from(e.target.selectedOptions).map(o =>
-      Number(o.value)
-    );
+  // Handle products change (checkbox group returns string array)
+  const handleProductsChange = (values: string[]) => {
+    const selected = values.map(v => Number(v));
     dispatch(setSelectedProducts(selected));
-    setJustRan(false);
+    dispatch(setFiltersChanged(true));
   };
 
+  // Handle Run Report
   const handleRun = () => {
     dispatch(runReport());
-    setJustRan(true);
   };
 
+  // Handle Clear All
   const handleClearAll = () => {
     dispatch(clearFilters());
-    setJustRan(false);
+    dispatch(setFiltersChanged(true));
   };
 
-  const hasActiveFilters = selectedCategory || selectedProducts.length > 0;
+  // Handle clear individual category
+  const handleClearCategory = () => {
+    dispatch(setSelectedCategory(null));
+    dispatch(setFiltersChanged(true));
+  };
+
+  // Handle clear individual product
+  const handleClearProduct = (id: number) => {
+    dispatch(
+      setSelectedProducts(selectedProducts.filter(s => s !== id))
+    );
+    dispatch(setFiltersChanged(true));
+  };
 
   return (
     <Card
@@ -122,14 +145,25 @@ export default function FilterSection() {
 
           {/* Category Filter */}
           <Box>
-            <Text 
-              fontSize="sm" 
-              fontWeight="600" 
-              color="gray.700" 
-              mb={2}
-            >
-              Select Category
-            </Text>
+            <Flex justify="space-between" align="center" mb={2}>
+              <Text 
+                fontSize="sm" 
+                fontWeight="600" 
+                color="gray.700"
+              >
+                Select Category
+              </Text>
+              {selectedCategory && (
+                <IconButton
+                  aria-label="clear-category"
+                  icon={<CloseIcon />}
+                  size="xs"
+                  variant="ghost"
+                  colorScheme="red"
+                  onClick={handleClearCategory}
+                />
+              )}
+            </Flex>
             <Select
               placeholder="All categories"
               value={selectedCategory ?? ''}
@@ -163,53 +197,90 @@ export default function FilterSection() {
               >
                 Select Products
               </Text>
-              {selectedProducts.length > 0 && (
-                <Badge 
-                  colorScheme="purple" 
-                  borderRadius="full"
-                  fontSize="2xs"
-                >
-                  {selectedProducts.length} selected
-                </Badge>
-              )}
+              <Flex align="center" gap={2}>
+                {selectedProducts.length > 0 && (
+                  <>
+                    <Badge 
+                      colorScheme="purple" 
+                      borderRadius="full"
+                      fontSize="2xs"
+                    >
+                      {selectedProducts.length} selected
+                    </Badge>
+                    <IconButton
+                      aria-label="clear-products"
+                      icon={<CloseIcon />}
+                      size="xs"
+                      variant="ghost"
+                      colorScheme="red"
+                      onClick={() => {
+                        dispatch(setSelectedProducts([]));
+                        dispatch(setFiltersChanged(true));
+                      }}
+                    />
+                  </>
+                )}
+              </Flex>
             </Flex>
-            <Select
-              placeholder={
-                selectedCategory 
-                  ? "Choose products..." 
-                  : "Select a category first"
-              }
-              value={selectedProducts.map(String)}
-              onChange={handleProductsChange}
-              multiple
-              isDisabled={!selectedCategory}
-              size="md"
-              minH={{ base: '120px', md: '140px' }}
-              borderRadius="lg"
-              borderColor="gray.300"
-              _hover={{ borderColor: 'blue.400' }}
-              _focus={{ 
-                borderColor: 'blue.500', 
-                boxShadow: '0 0 0 1px var(--chakra-colors-blue-500)' 
-              }}
-              bg="gray.50"
-              transition="all 0.2s"
-              sx={{
-                option: {
-                  padding: '8px 12px',
-                  cursor: 'pointer',
-                }
-              }}
-            >
-              {productOptions.map(p => (
-                <option key={p.id} value={p.id}>
-                  {p.title}
-                </option>
-              ))}
-            </Select>
-            <Text fontSize="2xs" color="gray.500" mt={1}>
-              Hold Ctrl/Cmd to select multiple
-            </Text>
+            
+            {!selectedCategory ? (
+              <Box
+                p={4}
+                bg="gray.50"
+                borderRadius="lg"
+                border="1px"
+                borderColor="gray.200"
+                textAlign="center"
+              >
+                <Text fontSize="sm" color="gray.500">
+                  Select a category first
+                </Text>
+              </Box>
+            ) : (
+              <Box
+                maxH={{ base: '200px', md: '250px' }}
+                overflowY="auto"
+                p={3}
+                bg="gray.50"
+                borderRadius="lg"
+                border="1px"
+                borderColor="gray.300"
+                css={{
+                  '&::-webkit-scrollbar': {
+                    width: '8px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: '#f1f1f1',
+                    borderRadius: '10px',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#cbd5e0',
+                    borderRadius: '10px',
+                  },
+                  '&::-webkit-scrollbar-thumb:hover': {
+                    background: '#a0aec0',
+                  },
+                }}
+              >
+                <CheckboxGroup
+                  value={selectedProducts.map(String)}
+                  onChange={handleProductsChange}
+                >
+                  <Stack spacing={2}>
+                    {productOptions.map(p => (
+                      <Checkbox 
+                        key={p.id} 
+                        value={String(p.id)}
+                        colorScheme="purple"
+                        size={{ base: 'sm', md: 'md' }}
+                      >
+                        <Text fontSize="sm">{p.title}</Text>
+                      </Checkbox>
+                    ))}
+                  </Stack>
+                </CheckboxGroup>
+              </Box>
+            )}
           </Box>
 
           <Divider />
@@ -282,11 +353,7 @@ export default function FilterSection() {
                         h="auto"
                         p={1}
                         _hover={{ bg: 'blue.200' }}
-                        onClick={() => {
-                          dispatch(setSelectedCategory(null));
-                          dispatch(setSelectedProducts([]));
-                          setJustRan(false);
-                        }}
+                        onClick={handleClearCategory}
                       />
                     </Tag>
                   )}
@@ -317,14 +384,7 @@ export default function FilterSection() {
                           h="auto"
                           p={1}
                           _hover={{ bg: 'purple.200' }}
-                          onClick={() => {
-                            dispatch(
-                              setSelectedProducts(
-                                selectedProducts.filter(s => s !== id)
-                              )
-                            );
-                            setJustRan(false);
-                          }}
+                          onClick={() => handleClearProduct(id)}
                         />
                       </Tag>
                     );

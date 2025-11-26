@@ -8,7 +8,6 @@ import {
   Spinner,
   Text,
   VStack,
-  useBreakpointValue,
   SimpleGrid,
   Flex,
 } from '@chakra-ui/react';
@@ -23,6 +22,7 @@ import {
 import FilterSection from './components/FilterSection';
 import type { AppDispatch, RootState } from './store';
 import { setSelectedCategory } from './store/slices/filterSlice';
+import { setFiltersChanged } from './store/slices/reportSlice';
 
 const normalizeRemote = <T,>(mod: any) => {
   let comp = mod?.default ?? mod;
@@ -98,6 +98,11 @@ function App() {
   };
 
   const filteredProducts = getFilteredProducts();
+  
+  // Get pie chart data based on filters
+  // If products are selected, show only those products
+  // If only category is selected, show all products in that category
+  // If nothing is selected, show all products by category
   const pieChartData = getPieChartData(
     selectedProducts.length > 0 ? selectedProducts : undefined
   );
@@ -105,6 +110,7 @@ function App() {
   // Handle pie chart category click
   const handleCategoryClick = (category: string) => {
     dispatch(setSelectedCategory(category));
+    dispatch(setFiltersChanged(true));
   };
 
   return (
