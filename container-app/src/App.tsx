@@ -38,7 +38,6 @@ type RemoteBarChartProps = {
   isDark?: boolean;
 };
 
-// Lazy load remote components
 const PieChart = lazy(() =>
   import('chartApp/PieChart').then(mod => {
     return { default: normalizeRemote<RemotePieChartProps>(mod) };
