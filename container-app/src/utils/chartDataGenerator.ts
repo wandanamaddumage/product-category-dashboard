@@ -1,17 +1,8 @@
-/**
- * Chart Data Generator Utility
- * - Generates mock chart data based on filters
- * - Can be replaced with API calls
- */
-
 export interface DataPoint {
   category: string;
   value: number;
 }
 
-/**
- * Generate pie chart data (category distribution)
- */
 export function generatePieChartData(): DataPoint[] {
   return [
     { category: 'Electronics', value: 30 },
@@ -21,15 +12,11 @@ export function generatePieChartData(): DataPoint[] {
   ];
 }
 
-/**
- * Generate column chart data (product sales)
- */
 export function generateColumnChartData(
   category: string,
   products: number[]
 ): DataPoint[] {
   if (products.length === 0) {
-    // Show aggregated data for category
     return [
       {
         category: `${category} (Total)`,
@@ -38,7 +25,6 @@ export function generateColumnChartData(
     ];
   }
 
-  // Show data for selected products
   return products.map(productId => ({
     category: `Product ${productId}`,
     value: Math.floor(Math.random() * 500) + 100,

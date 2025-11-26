@@ -25,7 +25,12 @@ import { setSelectedCategory } from './store/slices/filterSlice';
 import { resetReport } from './store/slices/reportSlice';
 import { DashboardHeader } from './components/DashboardHeader';
 
-// Normalize remote component
+/**
+ * Normalizes remote components from module federation to ensure consistent component structure
+ * @template T - The expected prop type of the remote component
+ * @param mod - The module containing the remote component
+ * @returns A normalized React component with proper TypeScript typing
+ */
 const normalizeRemote = <T,>(mod: any) => {
   let comp = mod?.default ?? mod;
   if (comp?.default) comp = comp.default;
@@ -43,19 +48,26 @@ type RemoteBarChartProps = {
   isDark?: boolean;
 };
 
+// Lazy load the PieChart component from the remote chart application
+// This enables code-splitting and reduces the initial bundle size
 const PieChart = lazy(() =>
   import('chartApp/PieChart').then(mod => ({
     default: normalizeRemote<RemotePieChartProps>(mod),
   }))
 );
 
+// Lazy load the BarChart component from the remote chart application
+// This enables code-splitting and reduces the initial bundle size
 const BarChart = lazy(() =>
   import('chartApp/BarChart').then(mod => ({
     default: normalizeRemote<RemoteBarChartProps>(mod),
   }))
 );
 
-// Loading Spinner
+/**
+ * Loading component displayed while remote chart components are being loaded
+ * Provides visual feedback to users during component loading
+ */
 const ChartLoader = () => (
   <Card bg="white" shadow="sm" borderRadius="xl" border="1px" borderColor="gray.100">
     <CardBody>
@@ -69,46 +81,60 @@ const ChartLoader = () => (
   </Card>
 );
 
+/**
+ * Main application component that orchestrates the dashboard layout and data flow
+ * Manages state, handles user interactions, and renders the application UI
+ */
 function App() {
+  // Initialize Redux dispatch and select necessary state
   const dispatch = useDispatch<AppDispatch>();
-
   const { selectedCategory, selectedProducts } = useSelector(
     (state: RootState) => state.filter
   );
   const { hasRun } = useSelector((state: RootState) => state.report);
 
-  // Track if this is the initial mount
+  // Track initial mount to prevent unnecessary side effects
   const isInitialMount = useRef(true);
 
-  // Auto-hide bar chart when category changes
+  /**
+   * Handles category selection in the pie chart
+   * Updates the selected category and resets the report state
+   * @param {string} category - The selected category name
+   */
   const handleCategoryClick = (category: string) => {
     dispatch(setSelectedCategory(category));
     dispatch(resetReport());
   };
 
-  // Watch for filter changes and hide bar chart (but not when hasRun changes)
+  /**
+   * Effect hook to handle filter changes
+   * Resets the report state when filters change after the initial render
+   */
   useEffect(() => {
-    // Skip on initial mount
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
     }
     
-    // Hide bar chart when filters change after report has been run
     if (hasRun) {
       dispatch(resetReport());
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory, selectedProducts]);
 
-  // Product filtering logic
+  /**
+   * Filters products based on selected category and/or product IDs
+   * @returns {Product[]} Filtered array of products
+   */
   const getFilteredProducts = () => {
+    // Return products matching selected product IDs if any are selected
     if (selectedProducts.length > 0) {
       return productsData.filter(p => selectedProducts.includes(p.id));
     }
+    // Return products matching the selected category if one is selected
     if (selectedCategory) {
       return getProductsByCategory(selectedCategory);
     }
+    // Return all products if no filters are applied
     return productsData;
   };
 

@@ -6,7 +6,7 @@ interface ChartState {
   showColumnChart: boolean;
 }
 
-const initialState: ChartState = {
+export const initialState: ChartState = {
   pieData: [],
   columnData: [],
   showColumnChart: false,

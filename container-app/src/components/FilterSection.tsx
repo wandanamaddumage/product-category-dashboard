@@ -12,23 +12,28 @@ function FilterSection() {
   const { selectedCategory, selectedProducts } = useSelector((state: RootState) => state.filter);
   const { filtersChanged } = useSelector((state: RootState) => state.report);
 
+  // Determine products available based on selected category
   const availableProducts = selectedCategory ? getProductsByCategory(selectedCategory) : productsData;
 
   const markFiltersChanged = () => dispatch(setFiltersChanged(true));
 
+  // Update selected category and reset product selection
   const handleCategoryChange = (category: string) => {
     dispatch(setSelectedCategory(category));
     dispatch(setSelectedProducts([]));
     markFiltersChanged();
   };
 
+  // Update selected products
   const handleProductSelection = (productIds: string[]) => {
     dispatch(setSelectedProducts(productIds.map(Number)));
     markFiltersChanged();
   };
 
+  // Submit report with selected products
   const handleRunReport = () => dispatch(submitReport(selectedProducts.map(String)));
 
+  // Clear category and/or product filters
   const handleClearFilters = (clearCategory = true, clearProducts = true) => {
     if (clearCategory) dispatch(setSelectedCategory(null));
     if (clearProducts) dispatch(setSelectedProducts([]));
@@ -56,7 +61,8 @@ function FilterSection() {
     >
       <CardBody p={{ base: 4, md: 5, lg: 6 }}>
         <VStack spacing={6} align="stretch">
-          {/* Header */}
+          
+          {/* Filters header */}
           <VStack align="stretch" spacing={1}>
             <Text fontWeight="700" fontSize="lg" color="gray.800">
               Filters
@@ -66,6 +72,7 @@ function FilterSection() {
             </Text>
           </VStack>
 
+          {/* Category dropdown */}
           <GenericDropdown
             label="Category"
             options={categories.map((c) => ({ value: c }))}
@@ -74,6 +81,7 @@ function FilterSection() {
             onClear={() => handleClearFilters(true, false)}
           />
 
+          {/* Products checkbox list */}
           <GenericCheckboxList
             label="Products"
             options={availableProducts.map((p) => ({ id: p.id, label: p.title }))}
@@ -83,7 +91,7 @@ function FilterSection() {
             disabled={!selectedCategory}
           />
 
-          {/* Action Buttons */}
+          {/* Action buttons */}
           <VStack spacing={2}>
             <Button
               colorScheme="purple"
@@ -110,7 +118,7 @@ function FilterSection() {
             </Button>
           </VStack>
 
-          {/* Helper Text */}
+          {/* Helper text when no products selected */}
           {selectedProducts.length === 0 && (
             <Text fontSize="xs" color="gray.500" textAlign="center">
               Select products to enable the report

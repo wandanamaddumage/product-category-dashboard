@@ -1,4 +1,3 @@
-// src/types/remotes.d.ts
 declare module 'chartApp/PieChart' {
   export interface PieChartProps {
     data: { name: string; y: number; category?: string }[];
