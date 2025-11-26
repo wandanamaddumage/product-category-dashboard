@@ -5,7 +5,7 @@ import { useColorModeValue } from './ui/color-mode';
 
 export function DashboardHeader() {
   return (
-    <div style={{ width: 'full' }}>
+    <Container style={{ width: 'full' }}>
       <Box
         as="h3"
         w="100%"
@@ -50,6 +50,6 @@ export function DashboardHeader() {
           </Text>
         </Container>
       </Box>
-    </div>
+    </Container>
   );
 }

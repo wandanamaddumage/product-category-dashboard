@@ -1,9 +1,8 @@
 'use client';
 
-import type { IconButtonProps, SpanProps } from '@chakra-ui/react';
-import { ClientOnly, IconButton, Skeleton, Span } from '@chakra-ui/react';
-import { ThemeProvider, useTheme } from 'next-themes';
+import { Box, IconButton, IconButtonProps } from '@chakra-ui/react';
 import type { ThemeProviderProps } from 'next-themes';
+import { ThemeProvider, useTheme } from 'next-themes';
 import * as React from 'react';
 import { LuMoon, LuSun } from 'react-icons/lu';
 
@@ -23,9 +22,9 @@ export interface UseColorModeReturn {
   toggleColorMode: () => void;
 }
 
-export function useColorMode(): UseColorModeReturn {
+export function useColorModeContext(): UseColorModeReturn {
   const { resolvedTheme, setTheme, forcedTheme } = useTheme();
-  const colorMode = forcedTheme || resolvedTheme;
+  const colorMode = forcedTheme || resolvedTheme || 'light';
   const toggleColorMode = () => {
     setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
   };
@@ -37,12 +36,12 @@ export function useColorMode(): UseColorModeReturn {
 }
 
 export function useColorModeValue<T>(light: T, dark: T) {
-  const { colorMode } = useColorMode();
+  const { colorMode } = useColorModeContext();
   return colorMode === 'dark' ? dark : light;
 }
 
 export function ColorModeIcon() {
-  const { colorMode } = useColorMode();
+  const { colorMode } = useColorModeContext();
   return colorMode === 'dark' ? <LuMoon /> : <LuSun />;
 }
 
@@ -52,57 +51,55 @@ export const ColorModeButton = React.forwardRef<
   HTMLButtonElement,
   ColorModeButtonProps
 >(function ColorModeButton(props, ref) {
-  const { toggleColorMode } = useColorMode();
+  const { toggleColorMode } = useColorModeContext();
+
   return (
-    <ClientOnly fallback={<Skeleton boxSize="9" />}>
+    <Box display="inline-block">
       <IconButton
         onClick={toggleColorMode}
         variant="ghost"
         aria-label="Toggle color mode"
         size="sm"
         ref={ref}
+        icon={<ColorModeIcon />}
+        _hover={{ bg: 'transparent' }}
+        _active={{ bg: 'transparent' }}
         {...props}
-        css={{
-          _icon: {
-            width: '5',
-            height: '5',
-          },
-        }}
-      >
-        <ColorModeIcon />
-      </IconButton>
-    </ClientOnly>
+      />
+    </Box>
   );
 });
 
-export const LightMode = React.forwardRef<HTMLSpanElement, SpanProps>(
-  function LightMode(props, ref) {
-    return (
-      <Span
-        color="fg"
-        display="contents"
-        className="chakra-theme light"
-        colorPalette="gray"
-        colorScheme="light"
-        ref={ref}
-        {...props}
-      />
-    );
-  }
-);
+export const LightMode = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(function LightMode({ children, ...props }, ref) {
+  return (
+    <Box
+      display="none"
+      className="chakra-theme light"
+      data-theme="light"
+      ref={ref}
+      {...props}
+    >
+      {children}
+    </Box>
+  );
+});
 
-export const DarkMode = React.forwardRef<HTMLSpanElement, SpanProps>(
-  function DarkMode(props, ref) {
-    return (
-      <Span
-        color="fg"
-        display="contents"
-        className="chakra-theme dark"
-        colorPalette="gray"
-        colorScheme="dark"
-        ref={ref}
-        {...props}
-      />
-    );
-  }
-);
+export const DarkMode = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(function DarkMode({ children, ...props }, ref) {
+  return (
+    <Box
+      display="none"
+      className="chakra-theme dark"
+      data-theme="dark"
+      ref={ref}
+      {...props}
+    >
+      {children}
+    </Box>
+  );
+});

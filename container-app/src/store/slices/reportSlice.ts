@@ -1,31 +1,24 @@
-import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+// src/store/reportSlice.ts
+import { createSlice } from '@reduxjs/toolkit';
 
-interface ReportState {
-  isLoading: boolean;
+type ReportState = {
   hasRun: boolean;
-}
-
-const initialState: ReportState = {
-  isLoading: false,
-  hasRun: false,
 };
 
-/**
- * Report Slice
- * - Manages Run Report button state and loading
- */
+const initialState: ReportState = { hasRun: false };
+
 const reportSlice = createSlice({
   name: 'report',
   initialState,
   reducers: {
-    setRunReportLoading: (state, action: PayloadAction<boolean>) => {
-      state.isLoading = action.payload;
-      if (action.payload) {
-        state.hasRun = true;
-      }
+    runReport(state) {
+      state.hasRun = true;
+    },
+    resetReport(state) {
+      state.hasRun = false;
     },
   },
 });
 
-export const { setRunReportLoading } = reportSlice.actions;
+export const { runReport, resetReport } = reportSlice.actions;
 export default reportSlice.reducer;

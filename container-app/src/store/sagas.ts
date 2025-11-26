@@ -5,17 +5,6 @@ import {
   setPieData,
   setShowColumnChart,
 } from './slices/chartSlice';
-import { setRunReportLoading } from './slices/reportSlice';
-
-/**
- * Root Saga
- * - Handles side effects like data fetching
- * - Processes Run Report action
- */
-
-interface RunReportAction {
-  type: string;
-}
 
 // Mock function to generate chart data based on filters
 function generateChartData(
@@ -72,4 +61,7 @@ function* handleRunReport(): Generator {
 
 export default function* rootSaga() {
   yield takeLatest('report/setRunReportLoading', handleRunReport);
+}
+function setRunReportLoading(_arg0: boolean): any {
+  throw new Error('Function not implemented.');
 }

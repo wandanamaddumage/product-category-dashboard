@@ -1,232 +1,159 @@
-'use client';
-
+// src/components/FilterSection.tsx
+import { CloseIcon } from '@chakra-ui/icons';
 import {
-  Badge,
   Box,
   Button,
-  Card,
-  CardBody,
-  CardHeader,
-  Flex,
-  FormControl,
-  Heading,
   HStack,
+  IconButton,
   Select,
+  Tag,
+  TagLabel,
   Text,
   VStack,
 } from '@chakra-ui/react';
-
-import { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import type { RootState } from '../store';
-
-interface SelectItem {
-  label: string;
-  value: string;
-}
-
 import {
-  clearCategory,
+  categories,
+  getProductsByCategory,
+  Product,
+  productsData,
+} from '../../../const/productData';
+import { AppDispatch, RootState } from '../store';
+import {
   clearFilters,
-  clearProducts,
   setSelectedCategory,
   setSelectedProducts,
 } from '../store/slices/filterSlice';
-
-import { setRunReportLoading } from '../store/slices/reportSlice';
-
-// Import the data
-import {
-  categories,
-  productsData,
-  type Product,
-} from '../../../const/productData';
-
-type FilteredProduct = Pick<Product, 'id' | 'title' | 'category'>;
+import { runReport } from '../store/slices/reportSlice';
 
 export default function FilterSection() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const { selectedCategory, selectedProducts } = useSelector(
-    (state: RootState) => state.filter
+    (s: RootState) => s.filter
   );
-  const { isLoading } = useSelector((state: RootState) => state.report);
+  useSelector((s: RootState) => s.report);
 
-  // Get all products with only the needed properties
-  const allProducts: FilteredProduct[] = productsData.map(
-    ({ id, title, category }) => ({
-      id,
-      title,
-      category,
-    })
+  // locally track run-disabled state (disabled immediately after running)
+  const [justRan, setJustRan] = useState(false);
+
+  const productOptions = useMemo<Product[]>(
+    () => (selectedCategory ? getProductsByCategory(selectedCategory) : []),
+    [selectedCategory]
   );
 
-  const filteredProducts = useMemo(() => {
-    return selectedCategory
-      ? allProducts.filter(p => p.category === selectedCategory)
-      : [];
-  }, [selectedCategory]);
+  const runDisabled =
+    (!selectedCategory && selectedProducts.length === 0) || justRan;
 
-  // Disable run report button until filters exist
-  const isRunReportDisabled =
-    !selectedCategory && selectedProducts.length === 0;
-
-  const handleRunReport = () => {
-    if (!isRunReportDisabled) {
-      dispatch(setRunReportLoading(true));
-      setTimeout(() => {
-        dispatch(setRunReportLoading(false));
-      }, 500);
-    }
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const cat = e.target.value || null;
+    dispatch(setSelectedCategory(cat));
+    dispatch(setSelectedProducts([])); // clear product selection on category change
+    setJustRan(false);
   };
 
-  // Prepare category options
-  const categoryOptions = categories.map((c: string) => ({
-    label: c,
-    value: c,
-  }));
+  const handleProductsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = Array.from(e.target.selectedOptions).map(o =>
+      Number(o.value)
+    );
+    dispatch(setSelectedProducts(selected));
+    setJustRan(false);
+  };
 
-  // Prepare product options
-  const productOptions = filteredProducts.map(p => ({
-    label: p.title,
-    value: String(p.id),
-  }));
+  const handleRun = () => {
+    dispatch(runReport());
+    setJustRan(true);
+  };
+
+  const handleClearAll = () => {
+    dispatch(clearFilters());
+    setJustRan(false);
+  };
 
   return (
-    <Card variant="elevated">
-      <CardHeader>
-        <Heading size="md">Filter Products</Heading>
-      </CardHeader>
-      <CardBody>
-        <VStack gap={6} align="stretch">
-          {/* -------------------- CATEGORY SELECT -------------------- */}
-          <Box>
-            <Text fontWeight="600" mb={2} color="gray.700" fontSize="sm">
-              Product Category{' '}
-              <Text as="span" color="red.500">
-                *
-              </Text>
-            </Text>
+    <VStack align="start" spacing={4}>
+      <HStack spacing={4} w="full">
+        <Box minW="220px">
+          <Text mb={1}>Category</Text>
+          <Select
+            placeholder="Select category"
+            value={selectedCategory ?? ''}
+            onChange={handleCategoryChange}
+          >
+            {categories.map(c => (
+              <option key={c} value={c}>
+                {c}
+              </option>
+            ))}
+          </Select>
+        </Box>
 
-            <FormControl id="category-select">
-              <Select
-                placeholder="Select category"
-                value={selectedCategory || ''}
-                onChange={e => {
-                  const value = e.target.value;
-                  dispatch(setSelectedCategory(value));
-                  dispatch(setSelectedProducts([]));
-                }}
-                size="sm"
-                width="100%"
-              >
-                {categoryOptions.map((item: SelectItem) => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </Select>
-            </FormControl>
+        <Box flex="1">
+          <Text mb={1}>Products (multi-select)</Text>
+          <Select
+            placeholder="Select products (select a category first)"
+            onChange={handleProductsChange}
+            multiple
+            isDisabled={!selectedCategory}
+            size="md"
+            height="40px"
+          >
+            {productOptions.map(p => (
+              <option key={p.id} value={p.id}>
+                {p.title}
+              </option>
+            ))}
+          </Select>
+        </Box>
 
-            {selectedCategory && (
-              <Flex mt={2} gap={2} alignItems="center">
-                <Badge colorScheme="blue" variant="solid">
-                  {selectedCategory}
-                </Badge>
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  colorScheme="blue"
-                  onClick={() => dispatch(clearCategory())}
-                >
-                  Clear
-                </Button>
-              </Flex>
-            )}
-          </Box>
+        <Button colorScheme="blue" onClick={handleRun} isDisabled={runDisabled}>
+          Run Report
+        </Button>
 
-          {/* -------------------- PRODUCTS MULTI SELECT -------------------- */}
-          <Box>
-            <Text fontWeight="600" mb={2} color="gray.700" fontSize="sm">
-              Products{' '}
-              {!selectedCategory && (
-                <Text as="span" fontSize="xs" color="gray.500" ml={2}>
-                  (Select category first)
-                </Text>
-              )}
-            </Text>
+        <Button variant="ghost" onClick={handleClearAll}>
+          Clear All
+        </Button>
+      </HStack>
 
-            <FormControl id="product-select" isDisabled={!selectedCategory}>
-              <Select
-                placeholder="Select products"
-                multiple
-                value={selectedProducts.map(String)}
-                onChange={e => {
-                  const options = Array.from(e.target.selectedOptions, option =>
-                    Number(option.value)
+      <HStack spacing={2}>
+        {selectedCategory && (
+          <Tag>
+            <TagLabel>{selectedCategory}</TagLabel>
+            <IconButton
+              aria-label="clear-category"
+              size="xs"
+              icon={<CloseIcon />}
+              ml={2}
+              onClick={() => {
+                dispatch(setSelectedCategory(null));
+                dispatch(setSelectedProducts([]));
+                setJustRan(false);
+              }}
+            />
+          </Tag>
+        )}
+
+        {selectedProducts.map(id => {
+          const p = productsData.find(pp => pp.id === id);
+          return (
+            <Tag key={id}>
+              <TagLabel>{p?.title ?? id}</TagLabel>
+              <IconButton
+                aria-label="clear-product"
+                size="xs"
+                icon={<CloseIcon />}
+                ml={2}
+                onClick={() => {
+                  dispatch(
+                    setSelectedProducts(selectedProducts.filter(s => s !== id))
                   );
-                  dispatch(setSelectedProducts(options));
+                  setJustRan(false);
                 }}
-                size="sm"
-                width="100%"
-                height="auto"
-                minH="100px"
-              >
-                {productOptions.map(item => (
-                  <option key={item.value} value={item.value}>
-                    {item.label}
-                  </option>
-                ))}
-              </Select>
-            </FormControl>
-
-            {selectedProducts.length > 0 && (
-              <Flex mt={2} gap={1} wrap="wrap" alignItems="center">
-                {selectedProducts.map(id => {
-                  const product = filteredProducts.find(p => p.id === id);
-                  return (
-                    <Badge key={id} colorScheme="teal" variant="solid">
-                      {product?.title}
-                    </Badge>
-                  );
-                })}
-
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  colorScheme="teal"
-                  onClick={() => dispatch(clearProducts())}
-                >
-                  Clear Products
-                </Button>
-              </Flex>
-            )}
-          </Box>
-
-          {/* -------------------- ACTION BUTTONS -------------------- */}
-          <HStack gap={4} pt={4} borderTopWidth="1px">
-            <Button
-              colorScheme="blue"
-              size="md"
-              fontWeight="600"
-              isDisabled={isRunReportDisabled}
-              isLoading={isLoading}
-              loadingText="Generating..."
-              onClick={handleRunReport}
-            >
-              Run Report
-            </Button>
-
-            <Button
-              variant="outline"
-              colorScheme="gray"
-              onClick={() => dispatch(clearFilters())}
-              size="md"
-            >
-              Clear All Filters
-            </Button>
-          </HStack>
-        </VStack>
-      </CardBody>
-    </Card>
+              />
+            </Tag>
+          );
+        })}
+      </HStack>
+    </VStack>
   );
 }

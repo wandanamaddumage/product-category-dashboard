@@ -1,5 +1,4 @@
 // src/data/productData.ts
-
 export interface Product {
   id: number;
   title: string;
@@ -84,39 +83,32 @@ export const productsData: Product[] = [
   { id: 14, title: 'Hair Care', category: 'Beauty', price: 35, sales: 240 },
 ];
 
-// Get unique categories
 export const categories = Array.from(
   new Set(productsData.map(p => p.category))
 );
 
-// Get products by category
-export const getProductsByCategory = (category: string): Product[] => {
-  return productsData.filter(p => p.category === category);
-};
+export const getProductsByCategory = (category: string): Product[] =>
+  productsData.filter(p => p.category === category);
 
-// Get category data for charts
-export const getCategoryData = (): CategoryData[] => {
-  return categories.map(category => ({
-    name: category,
-    products: getProductsByCategory(category),
-  }));
-};
-
-// Get aggregated data for pie chart
+// Aggregate sales by category for Pie Chart (Highcharts expects { name, y } per point)
 export const getPieChartData = (selectedProducts?: number[]) => {
   const products =
     selectedProducts && selectedProducts.length > 0
       ? productsData.filter(p => selectedProducts.includes(p.id))
       : productsData;
 
-  return products.map(p => ({
-    name: p.title,
-    value: p.sales,
-    category: p.category,
+  const map = new Map<string, number>();
+  products.forEach(p => {
+    map.set(p.category, (map.get(p.category) || 0) + p.sales);
+  });
+
+  return Array.from(map.entries()).map(([category, totalSales]) => ({
+    name: category,
+    y: totalSales,
+    category,
   }));
 };
 
-// Get aggregated data by category
 export const getCategorySalesData = () => {
   return categories.map(category => {
     const categoryProducts = getProductsByCategory(category);

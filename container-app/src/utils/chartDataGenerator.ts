@@ -9,13 +9,6 @@ export interface DataPoint {
   value: number;
 }
 
-const mockProductsByCategory: Record<string, number[]> = {
-  Electronics: [1, 2, 3, 4],
-  Furniture: [5, 6, 7, 8],
-  Groceries: [9, 10, 11],
-  Beauty: [12, 13, 14],
-};
-
 /**
  * Generate pie chart data (category distribution)
  */
@@ -35,8 +28,6 @@ export function generateColumnChartData(
   category: string,
   products: number[]
 ): DataPoint[] {
-  const categoryProducts = mockProductsByCategory[category] || [];
-
   if (products.length === 0) {
     // Show aggregated data for category
     return [

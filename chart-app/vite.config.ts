@@ -4,7 +4,6 @@ import path from 'path';
 import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
-// https://vite.dev/config/
 export default defineConfig({
   plugins: [
     react(),
@@ -12,27 +11,34 @@ export default defineConfig({
     federation({
       name: 'chartApp',
       filename: 'remoteEntry.js',
-      // Expose chart components
       exposes: {
-        './BarChart': './src/components/BarChart',
-        './LineChart': './src/components/LineChart',
-        './PieChart': './src/components/PieChart',
-        './Dashboard': './src/components/Dashboard',
+        './BarChart': './src/components/BarChart.tsx',
+        './PieChart': './src/components/PieChart.tsx',
       },
-      shared: [
-        'react',
-        'react-dom',
-        '@chakra-ui/react',
-        '@emotion/react',
-        '@emotion/styled',
-        'framer-motion',
-      ],
+      shared: {
+        react: { requiredVersion: '^18.3.1' },
+        'react-dom': { requiredVersion: '^18.3.1' },
+        '@chakra-ui/react': { requiredVersion: '^2.8.0' },
+        '@emotion/react': { requiredVersion: '^11.14.0' },
+        '@emotion/styled': { requiredVersion: '^11.14.1' },
+        'framer-motion': { requiredVersion: '^10.16.0' },
+        highcharts: { requiredVersion: '^12.4.0' },
+        'highcharts-react-official': { requiredVersion: '^3.2.3' },
+      },
     }),
   ],
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
+    alias: { '@': path.resolve(__dirname, './src') },
+    dedupe: [
+      'react',
+      'react-dom',
+      '@chakra-ui/react',
+      '@emotion/react',
+      '@emotion/styled',
+      'framer-motion',
+      'highcharts',
+      'highcharts-react-official',
+    ],
   },
   build: {
     modulePreload: false,
@@ -40,23 +46,6 @@ export default defineConfig({
     minify: false,
     cssCodeSplit: false,
   },
-  server: {
-    port: 5001,
-    strictPort: true,
-    cors: true,
-  },
-  preview: {
-    port: 5001,
-    strictPort: true,
-  },
-  optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      '@chakra-ui/react',
-      '@emotion/react',
-      '@emotion/styled',
-      'framer-motion',
-    ],
-  },
+  server: { port: 5001, strictPort: true, cors: true },
+  preview: { port: 5001, strictPort: true },
 });

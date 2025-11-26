@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@chakra-ui/react": "^2.8.0",
-    "@emotion/react": "^11.11.0",
-    "@emotion/styled": "11.11.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "11.14.1",
     "@types/highcharts": "^7.0.0",
     "framer-motion": "10.16.0",
     "highcharts": "^12.4.0",
