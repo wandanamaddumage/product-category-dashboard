@@ -25,18 +25,19 @@ type PieChartProps = {
 function PieChart({ data, onCategoryClick, isDark }: PieChartProps) {
   const chartRef = useRef<HighchartsReactComponent.RefObject>(null);
 
-  // Modern vibrant color palette
+  // Generate color palette based on base color #6b46c1
   const MODERN_COLORS = useMemo(() => {
-    return [
-      '#667eea', // Purple-blue
-      '#f093fb', // Pink
-      '#4facfe', // Sky blue
-      '#43e97b', // Green
-      '#fa709a', // Coral
-      '#feca57', // Yellow
-      '#48dbfb', // Cyan
-      '#ff6348', // Orange-red
-    ];
+    const baseColor = '#845ddeff';
+    const colors: string[] = [];
+    
+    // Generate 8 variations of the base color
+    for (let i = 0; i < 8; i++) {
+      const brightness = (i - 3) / 7; // Range from -0.43 to 0.71
+      const color = Highcharts.color(baseColor).brighten(brightness).get() as string;
+      colors.push(color);
+    }
+    
+    return colors;
   }, []);
 
   const options: Highcharts.Options = {
@@ -114,7 +115,7 @@ function PieChart({ data, onCategoryClick, isDark }: PieChartProps) {
           },
           select: {
             color: undefined,
-            borderColor: '#667eea',
+            borderColor: '#6b46c1',
             borderWidth: 3
           }
         },

@@ -1,6 +1,4 @@
-import {
-  Box,
-} from '@chakra-ui/react';
+import { Box } from '@chakra-ui/react';
 import Highcharts from 'highcharts';
 import HighchartsReactImport from 'highcharts-react-official';
 import type HighchartsReactComponent from 'highcharts-react-official';
@@ -16,19 +14,24 @@ const resolveHighchartsReact = (mod: any) => {
 const HighchartsReact = resolveHighchartsReact(HighchartsReactImport);
 
 type BarChartProps = {
-  data: Product[]; // host passes filteredProducts
+  data: Product[];
   isDark?: boolean;
 };
 
 function BarChart({ data, isDark = false }: BarChartProps) {
   const chartRef = useRef<HighchartsReactComponent.RefObject>(null);
 
-  // If we have 5 or fewer products, show them individually, otherwise group by category
+  interface ChartDataPoint {
+    name: string;
+    y: number;
+    category?: string;
+    price?: number;
+  }
+
   const showIndividualProducts = data.length <= 5;
 
   const chartData = useMemo((): ChartDataPoint[] => {
     if (showIndividualProducts) {
-      // Show individual products
       return data.map(product => ({
         name: product.title,
         y: product.sales,
@@ -36,12 +39,12 @@ function BarChart({ data, isDark = false }: BarChartProps) {
         price: product.price
       }));
     }
-    
-    // Group by category
+
     const map = new Map<string, number>();
     data.forEach(p =>
       map.set(p.category, (map.get(p.category) || 0) + p.sales)
     );
+
     return Array.from(map.entries()).map(([name, y]) => ({
       name,
       y,
@@ -51,59 +54,48 @@ function BarChart({ data, isDark = false }: BarChartProps) {
 
   const sortedData = [...chartData].sort((a, b) => b.y - a.y);
 
-  // Modern color palette matching the pie chart
-  const CATEGORY_COLORS: Record<string, string> = {
-    'Electronics': '#667eea',
-    'Furniture': '#f093fb',
-    'Kitchen': '#4facfe',
-    'Sports': '#43e97b',
-    'Bags': '#fa709a',
-  };
-  
-  // Define the shape of our chart data point
-  interface ChartDataPoint {
-    name: string;
-    y: number;
-    category?: string;
-    price?: number;
-  }
+  // ⭐ SAME COLOR SYSTEM AS PIE CHART ⭐
+  const MODERN_COLORS = useMemo(() => {
+    const baseColor = '#845ddeff';
+    const colors: string[] = [];
 
-  // Get color based on category or use a fallback
-  const getBarColor = (item: { category?: string }) => {
-    return item.category ? (CATEGORY_COLORS[item.category] || '#667eea') : '#667eea';
-  };
+    for (let i = 0; i < 8; i++) {
+      const brightness = (i - 3) / 7; // Range from -0.43 to 0.71
+      const color = Highcharts.color(baseColor).brighten(brightness).get() as string;
+      colors.push(color);
+    }
+
+    return colors;
+  }, []);
 
   const options: Highcharts.Options = {
-    chart: { 
-      type: 'column', 
+    chart: {
+      type: 'column',
       backgroundColor: 'transparent',
       height: '100%',
       style: {
-        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif'
       },
-      animation: {
-        duration: 800
-      }
+      animation: { duration: 800 }
     },
-    title: {
-      text: '',
-      style: { display: 'none' }
-    },
-    xAxis: { 
+    title: { text: '' },
+
+    xAxis: {
       type: 'category',
       labels: {
         style: {
           color: isDark ? '#e2e8f0' : '#4a5568',
           fontSize: '13px',
           fontWeight: '600'
-        },
-        rotation: 0
+        }
       },
       lineColor: '#e2e8f0',
       tickColor: '#e2e8f0'
     },
-    yAxis: { 
-      title: { 
+
+    yAxis: {
+      title: {
         text: 'Total Sales (units)',
         style: {
           color: isDark ? '#cbd5e0' : '#718096',
@@ -120,14 +112,15 @@ function BarChart({ data, isDark = false }: BarChartProps) {
       gridLineColor: '#f7fafc',
       gridLineDashStyle: 'Dash'
     },
+
     series: [
-      { 
-        type: 'column', 
+      {
+        type: 'column',
         name: 'Sales',
-        data: sortedData.map(item => ({
+        data: sortedData.map((item, idx) => ({
           name: item.name,
           y: item.y,
-          color: getBarColor(item),
+          color: MODERN_COLORS[idx % MODERN_COLORS.length], // ⭐ SAME COLOR PALETTE
           category: item.category,
           custom: {
             name: item.name,
@@ -139,6 +132,7 @@ function BarChart({ data, isDark = false }: BarChartProps) {
         showInLegend: false
       }
     ],
+
     plotOptions: {
       column: {
         borderRadius: 8,
@@ -148,7 +142,7 @@ function BarChart({ data, isDark = false }: BarChartProps) {
         dataLabels: {
           enabled: true,
           format: '{point.y}',
-          style: { 
+          style: {
             textOutline: 'none',
             color: isDark ? '#f3f4f6' : '#2d3748',
             fontSize: '13px',
@@ -157,13 +151,11 @@ function BarChart({ data, isDark = false }: BarChartProps) {
           y: -8
         },
         states: {
-          hover: {
-            brightness: 0.15,
-            borderColor: 'transparent'
-          }
+          hover: { brightness: 0.15 }
         }
-      },
+      }
     },
+
     tooltip: {
       backgroundColor: 'rgba(255, 255, 255, 0.95)',
       borderRadius: 12,
@@ -175,80 +167,29 @@ function BarChart({ data, isDark = false }: BarChartProps) {
         fontWeight: '500'
       },
       useHTML: true,
-      formatter: function(this: Highcharts.Point) {
-        const point = this as unknown as ChartDataPoint & { y: number, name?: string, category?: string };
+      formatter: function () {
+        const p = this.points as any;
         return `
-          <div style="text-align: center; min-width: 120px;">
-            <div style="font-weight: 700; color: #2d3748; margin-bottom: 4px;">
-              ${point.name || 'N/A'}
-            </div>
-            ${point.category ? `<div style="color: #718096; font-size: 12px; margin-bottom: 2px;">
-              ${point.category}
-            </div>` : ''}
-            <div style="font-weight: 600; color: #4a5568;">
-              <b>${point.y}</b> units sold
-            </div>
-            ${point.price ? `<div style="color: #718096; font-size: 11px; margin-top: 2px;">
-              $${point.price.toFixed(2)}
-            </div>` : ''}
+          <div style="text-align: center;">
+            <div style="font-weight: 700; color: #2d3748;">${p.name}</div>
+            ${p.category ? `<div style="color:#718096; font-size:12px;">${p.category}</div>` : ''}
+            <div style="color:#4a5568;"><b>${p.y}</b> units sold</div>
+            ${
+              p.custom?.price
+                ? `<div style="color:#718096; font-size:11px;">$${p.custom.price.toFixed(2)}</div>`
+                : ''
+            }
           </div>
         `;
-      },
-      shadow: {
-        offsetX: 0,
-        offsetY: 2,
-        width: 6,
-        opacity: 0.1
       }
     },
-    credits: { enabled: false },
-    responsive: {
-      rules: [
-        {
-          condition: {
-            maxWidth: 500
-          },
-          chartOptions: {
-            xAxis: {
-              labels: {
-                style: {
-                  fontSize: '11px'
-                },
-                rotation: -45
-              }
-            },
-            yAxis: {
-              title: {
-                text: 'Sales',
-                style: {
-                  fontSize: '11px'
-                }
-              },
-              labels: {
-                style: {
-                  fontSize: '10px'
-                }
-              }
-            },
-            plotOptions: {
-              column: {
-                dataLabels: {
-                  enabled: true,
-                  style: {
-                    fontSize: '11px'
-                  }
-                }
-              }
-            }
-          }
-        }
-      ]
-    }
+
+    credits: { enabled: false }
   };
 
   return (
-    <Box 
-      w="100%" 
+    <Box
+      w="100%"
       h="100%"
       minH={{ base: '300px', md: '350px', lg: '400px' }}
       position="relative"
