@@ -1,346 +1,219 @@
-# Micro Frontend Project: Container App + Chart App
+# 🚀 Product Category Dashboard
 
-A complete micro frontend architecture with two applications:
+A modern micro-frontend dashboard application for visualizing and managing product categories with interactive charts and real-time data visualization.
 
-- **container-app** - Host application (Port 5000)
-- **chart-app** - Remote micro frontend with chart components (Port 5001)
+## 📋 Overview
 
-## 🏗️ Architecture
+The Product Category Dashboard is built using a micro-frontend architecture, allowing for independent development and deployment of its components. The application consists of a container app (host) and a chart app (remote), communicating through Module Federation.
 
-```
-┌─────────────────────────────────────────┐
-│       Container App (Host)              │
-│         Port: 5000                      │
-│                                         │
-│  ├─ React 18 + TypeScript              │
-│  ├─ Chakra UI v3                       │
-│  └─ Module Federation (Host)           │
-│                                         │
-│      Dynamically Loads ↓               │
-└─────────────────────────────────────────┘
-                 │
-                 │ HTTP
-                 ↓
-┌─────────────────────────────────────────┐
-│       Chart App (Remote)                │
-│         Port: 5001                      │
-│                                         │
-│  ├─ React 18 + TypeScript              │
-│  ├─ Chakra UI v3                       │
-│  ├─ Recharts                           │
-│  └─ Module Federation (Remote)         │
-│                                         │
-│  Exposes:                               │
-│  ├─ Dashboard                           │
-│  ├─ BarChart                            │
-│  ├─ LineChart                           │
-│  └─ PieChart                            │
-└─────────────────────────────────────────┘
-```
+## ✨ Features
+
+### Core Features
+
+- **Micro-Frontend Architecture**
+  - Independent deployment of chart components
+  - Lazy loading for optimized performance
+  - Isolated development environments
+
+- **Interactive Data Visualization**
+  - Dynamic bar, line, and pie charts
+  - Real-time data updates
+  - Responsive design for all devices
+
+- **Modern UI/UX**
+  - Clean, intuitive interface
+  - Dark/Light mode support
+  - Accessible components
+
+## 🛠️ Tech Stack
+
+### Frontend
+
+- **Frameworks**: React 18, TypeScript
+- **State Management**: Redux, Redux-Saga
+- **UI Components**: Chakra UI v3, Framer Motion
+- **Data Visualization**: Recharts, Highcharts
+- **Build Tool**: Vite
+- **Module Federation**: Webpack 5
+
+### Development Tools
+
+- **Testing**: Jest, React Testing Library
+- **Linting/Formatting**: ESLint, Prettier
+- **Version Control**: Git with Husky pre-commit hooks
 
 ## 🚀 Quick Start
 
-### 1. Start Chart App (Remote - Must start first!)
+### Prerequisites
+
+- Node.js (v18+)
+- pnpm (recommended - install with `npm install -g pnpm`)
+
+### Installation
+
+1. **Clone the repository**:
+
+   ```bash
+   git clone [your-repository-url]
+   cd product-category-dashboard
+   ```
+
+2. **Install dependencies**:
+
+   ```bash
+   # Install pnpm if you haven't already
+   npm install -g pnpm
+
+   # Install all dependencies
+   pnpm install
+   ```
+
+3. **Make the startup script executable** (Linux/MacOS):
+   ```bash
+   chmod +x start.sh
+   ```
+
+### Running Locally
+
+#### Option 1: Using the start script (Recommended)
 
 ```bash
-cd chart-app
-npm run dev
+# Run the start script (Linux/MacOS)
+./start.sh
+
+# Or if you don't have execute permissions:
+bash start.sh
 ```
 
-The chart-app will run at `http://localhost:5001`
+#### Option 2: Manual startup
 
-### 2. Start Container App (Host)
+If you prefer to run the applications manually:
 
-In a **new terminal**:
+1. **Start the development servers** (in separate terminals):
 
-```bash
-cd container-app
-npm run dev
+   ```bash
+   # Terminal 1 - Start chart app (must start first)
+   cd chart-app
+   pnpm run build && pnpm run preview
+
+   # Terminal 2 - Start container app
+   cd ../container-app
+   pnpm dev
+   ```
+
+2. **Access the applications**:
+   - Container App: http://localhost:5000
+   - Chart App (standalone): http://localhost:5001
+
+## 📁 Project Structure
+
 ```
-
-The container-app will run at `http://localhost:5000`
-
-### 3. Open Browser
-
-Navigate to `http://localhost:5000` to see the container app loading charts from the chart-app.
-
-## 📦 Project Structure
-
-```
-micro-fe/
-├── container-app/              # Host Application
+product-category-dashboard/
+├── chart-app/                  # Chart micro-frontend
 │   ├── src/
-│   │   ├── components/
-│   │   │   ├── ui/
-│   │   │   │   └── provider.tsx
-│   │   │   └── HostComponent.tsx
-│   │   ├── types/
-│   │   │   └── remote-modules.d.ts  # TypeScript types for remotes
-│   │   ├── App.tsx             # Consumes chart-app components
-│   │   └── main.tsx
-│   ├── vite.config.ts          # Federation config (host)
-│   ├── package.json
-│   └── tsconfig.json
+│   │   ├── components/         # Reusable chart components
+│   │   │   ├── BarChart/       # Bar chart implementation
+│   │   │   ├── LineChart/      # Line chart implementation
+│   │   │   └── PieChart/       # Pie chart implementation
+│   │   └── theme/              # Theme configuration
+│   └── package.json            # Dependencies and scripts
 │
-├── chart-app/                  # Remote Micro Frontend
+├── container-app/              # Main container application
+│   ├── public/                 # Static assets
 │   ├── src/
-│   │   ├── components/
-│   │   │   ├── ui/
-│   │   │   │   └── provider.tsx
-│   │   │   ├── BarChart.tsx    # Exposed
-│   │   │   ├── LineChart.tsx   # Exposed
-│   │   │   ├── PieChart.tsx    # Exposed
-│   │   │   └── Dashboard.tsx   # Exposed
-│   │   ├── App.tsx
-│   │   └── main.tsx
-│   ├── vite.config.ts          # Federation config (remote)
-│   ├── package.json
-│   └── tsconfig.json
+│   │   ├── components/         # UI components
+│   │   ├── hooks/              # Custom React hooks
+│   │   ├── store/              # Redux store
+│   │   └── theme/              # Theme configuration
+│   └── package.json            # Dependencies and scripts
 │
-└── README.md                   # This file
+├── .husky/                     # Git hooks
+└── package.json                # Root package.json
 ```
 
-## 🎯 Features
+## 🔧 Environment Variables
 
-### Container App (Host)
+Create a `.env` file in the root directory:
 
-- ✅ Consumes chart components from chart-app
-- ✅ Lazy loading with Suspense
-- ✅ Loading states with Chakra UI
-- ✅ Chakra UI v3 for styling
-- ✅ TypeScript support for remote modules
+```env
+# Container App
+VITE_API_BASE_URL=http://localhost:3000/api
+VITE_ENV=development
 
-### Chart App (Remote)
-
-- ✅ Exports 4 chart components
-- ✅ Built with Recharts library
-- ✅ Styled with Chakra UI v3
-- ✅ Can run standalone or as remote
-- ✅ Full dashboard with analytics
-
-## 🔧 Module Federation Configuration
-
-### Container App (vite.config.ts)
-
-```typescript
-federation({
-  name: "containerApp",
-  remotes: {
-    chartApp: "http://localhost:5001/assets/remoteEntry.js",
-  },
-  shared: ["react", "react-dom", "@chakra-ui/react"],
-});
+# Chart App
+VITE_CHART_API_ENDPOINT=/api/chart-data
 ```
 
-### Chart App (vite.config.ts)
+## 🧪 Testing
 
-```typescript
-federation({
-  name: "chartApp",
-  filename: "remoteEntry.js",
-  exposes: {
-    "./BarChart": "./src/components/BarChart",
-    "./LineChart": "./src/components/LineChart",
-    "./PieChart": "./src/components/PieChart",
-    "./Dashboard": "./src/components/Dashboard",
-  },
-  shared: ["react", "react-dom", "@chakra-ui/react"],
-});
-```
-
-## 📊 Exposed Components
-
-### Chart App Exposes:
-
-1. **Dashboard** - Complete analytics dashboard with stats and charts
-2. **BarChart** - Sales & revenue bar chart
-3. **LineChart** - User growth line chart
-4. **PieChart** - Traffic sources pie chart
-
-### Usage in Container App:
-
-```typescript
-import { lazy, Suspense } from "react";
-
-const Dashboard = lazy(() => import("chartApp/Dashboard"));
-const BarChart = lazy(() => import("chartApp/BarChart"));
-
-function App() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <Dashboard />
-      <BarChart />
-    </Suspense>
-  );
-}
-```
-
-## 🛠️ Development Commands
-
-### Container App
+Run tests for the project:
 
 ```bash
-cd container-app
+# Run all tests
+pnpm test
 
-npm run dev      # Start dev server (port 5000)
-npm run build    # Build for production
-npm run preview  # Preview production build
-npm run lint     # Run ESLint
+# Run tests in watch mode
+pnpm test -- --watch
+
+# Generate coverage report
+pnpm test -- --coverage
 ```
 
-### Chart App
+## 🚀 Deployment
+
+### Building for Production
 
 ```bash
-cd chart-app
+# Build all applications
+pnpm build:all
 
-npm run dev      # Start dev server (port 5001)
-npm run build    # Build for production
-npm run preview  # Preview production build
-npm run lint     # Run ESLint
+# The production build will be available in:
+# - container-app/dist
+# - chart-app/dist
 ```
 
-## 🎨 Technologies Used
+### Deployment Options
 
-### Both Apps
+1. **Static Hosting** (e.g., Vercel, Netlify)
+   - Deploy the `container-app/dist` directory
+   - Set up environment variables in your hosting platform
 
-- **React 18.3** - UI library
-- **TypeScript 5.6** - Type safety
-- **Vite 6.0** - Build tool
-- **Chakra UI v3** - Component library
-- **Module Federation** - Micro frontend architecture
+2. **Docker** (Example)
 
-### Chart App Specific
+   ```dockerfile
+   # Example Dockerfile for container-app
+   FROM node:18-alpine
+   WORKDIR /app
 
-- **Recharts 2.13** - Chart library
-- Responsive charts with Chakra UI styling
+   # Install pnpm
+   RUN npm install -g pnpm
 
-## 🔄 How It Works
+   # Copy package files
+   COPY package.json pnpm-lock.yaml ./
 
-1. **Chart App starts** on port 5001 and exposes components via Module Federation
-2. **Container App starts** on port 5000 and configures chart-app as a remote
-3. **At runtime**, container-app dynamically loads chart components from chart-app
-4. **Shared dependencies** (React, React-DOM, Chakra UI) are loaded only once
-5. **Both apps** can be developed and deployed independently
+   # Install dependencies
+   RUN pnpm install --frozen-lockfile
 
-## 📝 Important Notes
+   # Copy source code
+   COPY . .
 
-### Development Order
+   # Build the application
+   RUN pnpm build
 
-⚠️ **Always start chart-app BEFORE container-app**
+   # Start the application
+   CMD ["pnpm", "preview"]
+   ```
 
-- Chart-app must be running for container-app to load remote components
-- If chart-app is not running, you'll see loading states in container-app
+## 📅 Roadmap
 
-### Shared Dependencies
+### Technical Improvements
 
-Both apps share:
+- [ ] Add end-to-end testing
+- [ ] Implement CI/CD pipeline
+- [ ] Add performance monitoring
+- [ ] Improve bundle size optimization
 
-- `react` and `react-dom` - Ensures single React instance
-- `@chakra-ui/react` - Prevents duplicate Chakra UI instances
+## 📸 Screenshots
 
-### TypeScript Support
-
-The container-app has TypeScript declarations for remote modules in:
-`src/types/remote-modules.d.ts`
-
-## 🚢 Production Deployment
-
-### 1. Build Both Apps
-
-```bash
-# Build chart-app first
-cd chart-app
-npm run build
-
-# Build container-app
-cd ../container-app
-npm run build
-```
-
-### 2. Deploy Chart App
-
-Deploy `chart-app/dist` to a CDN or static host (e.g., Vercel, Netlify)
-
-### 3. Update Container App Config
-
-Update `container-app/vite.config.ts` with production URL:
-
-```typescript
-remotes: {
-  chartApp: "https://your-chart-app.com/assets/remoteEntry.js";
-}
-```
-
-### 4. Deploy Container App
-
-Deploy `container-app/dist` to your hosting provider
-
-## 🐛 Troubleshooting
-
-### Container app shows "Loading..." forever
-
-- **Solution**: Make sure chart-app is running on port 5001
-- Check: `http://localhost:5001/assets/remoteEntry.js` should be accessible
-
-### Module not found errors
-
-- **Solution**: Verify the remote URL in container-app's `vite.config.ts`
-- Ensure exposed module names match import paths
-
-### TypeScript errors
-
-- **Solution**: Check `remote-modules.d.ts` for type declarations
-- Restart TypeScript server: Cmd+Shift+P → "TypeScript: Restart TS Server"
-
-### Port already in use
-
-- **Chart App**: Edit port in `chart-app/vite.config.ts`
-- **Container App**: Edit port in `container-app/vite.config.ts`
-- Update remote URL in container-app if chart-app port changes
-
-### Chakra UI style conflicts
-
-- Both apps share Chakra UI to prevent duplicate styles
-- Ensure both apps use the same Chakra UI version
-
-## 📚 Learn More
-
-- [Vite Module Federation Plugin](https://github.com/originjs/vite-plugin-federation)
-- [Chakra UI Documentation](https://www.chakra-ui.com/)
-- [Recharts Documentation](https://recharts.org/)
-- [Module Federation Concepts](https://webpack.js.org/concepts/module-federation/)
-
-## ✨ What's Next?
-
-### Extend Chart App
-
-- Add more chart types (Area, Scatter, Radar)
-- Add real-time data updates
-- Add chart customization options
-
-### Extend Container App
-
-- Add more remote micro frontends
-- Add routing between different sections
-- Add authentication/authorization
-
-### Add More Micro Frontends
-
-Create additional micro frontends following the same pattern:
-
-- User management app
-- Settings app
-- Notification app
-- etc.
-
-## 🎉 Success!
-
-You now have a working micro frontend architecture with:
-
-- ✅ Independent development
-- ✅ Independent deployment
-- ✅ Shared dependencies
-- ✅ Runtime integration
-- ✅ Type safety
-
-Start both apps and see the magic of micro frontends! 🚀
+![Dashboard Preview](./screenshots/dashboard-preview.png)
+_Dashboard overview with interactive charts_
