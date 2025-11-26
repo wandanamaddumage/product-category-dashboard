@@ -14,11 +14,17 @@ const resolveHighchartsReact = (mod: any) => {
 
 const HighchartsReact = resolveHighchartsReact(HighchartsReactImport);
 
+/**
+ * Props for the BarChart component
+ */
 type BarChartProps = {
   data: Product[];
   isDark?: boolean;
 };
 
+/**
+ * Represents a single data point in the chart
+ */
 interface ChartDataPoint {
   name: string;
   y: number;
