@@ -5,8 +5,6 @@ import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
-  base: '/chart-app/',  // <-- REQUIRED FOR VERCEL HOSTING
-
   plugins: [
     react(),
     tsconfigPaths(),
@@ -18,18 +16,17 @@ export default defineConfig({
         './PieChart': './src/components/PieChart.tsx',
       },
       shared: {
-        react: { requiredVersion: false },
-        'react-dom': { requiredVersion: false },
-        '@chakra-ui/react': { requiredVersion: false },
-        '@emotion/react': { requiredVersion: false },
-        '@emotion/styled': { requiredVersion: false },
-        'framer-motion': { requiredVersion: false },
-        highcharts: { requiredVersion: false },
-        'highcharts-react-official': { requiredVersion: false },
+        react: { requiredVersion: '^18.3.1' },
+        'react-dom': { requiredVersion: '^18.3.1' },
+        '@chakra-ui/react': { requiredVersion: '^2.8.0' },
+        '@emotion/react': { requiredVersion: '^11.14.0' },
+        '@emotion/styled': { requiredVersion: '^11.14.1' },
+        'framer-motion': { requiredVersion: '^10.16.0' },
+        highcharts: { requiredVersion: '^12.4.0' },
+        'highcharts-react-official': { requiredVersion: '^3.2.3' },
       },
     }),
   ],
-
   resolve: {
     alias: { '@': path.resolve(__dirname, './src') },
     dedupe: [
@@ -43,14 +40,12 @@ export default defineConfig({
       'highcharts-react-official',
     ],
   },
-
   build: {
     modulePreload: false,
     target: 'esnext',
     minify: false,
     cssCodeSplit: false,
   },
-
   server: { port: 5001, strictPort: true, cors: true },
   preview: { port: 5001, strictPort: true },
 });
