@@ -154,7 +154,11 @@ const handleCategoryChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
               _focus={{ borderColor: 'purple.500', boxShadow: '0 0 0 1px #805ad5' }}
             >
               {categories.map((category) => (
-                <option key={category} value={category}>
+                <option 
+                  key={category} 
+                  value={category} 
+                  style={{ backgroundColor: 'white', color: 'black', fontWeight: 'normal' }}
+                >
                   {category}
                 </option>
               ))}

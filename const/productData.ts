@@ -90,7 +90,6 @@ export const categories = Array.from(
 export const getProductsByCategory = (category: string): Product[] =>
   productsData.filter(p => p.category === category);
 
-// Aggregate sales by category for Pie Chart (Highcharts expects { name, y } per point)
 export const getPieChartData = (selectedProducts?: number[]) => {
   const products =
     selectedProducts && selectedProducts.length > 0
